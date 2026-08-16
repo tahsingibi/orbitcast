@@ -1,8 +1,913 @@
 {
-  "name": "OrbitCast",
-  "tagline": "Your own radio, from one playlist",
-  "shareTagline": "Everyone hears the same thing right now",
-  "epoch": "2026-01-01T00:00:00.000Z",
-  "tracks": [],
-  "updatedAt": "1970-01-01T00:00:00.000Z"
+  "name": "RAPCAST",
+  "tagline": "Kesintisiz Türkçe Rap Yayını",
+  "shareTagline": "Herkes aynı anda aynı yerden dinliyor",
+  "epoch": "2026-08-16T01:27:09.175Z",
+  "tracks": [
+    {
+      "videoId": "WUfV1lj_kQY",
+      "title": "Parmak Uçlarını Kazıtan Kadın",
+      "artist": "Saian",
+      "durationSec": 182,
+      "thumbnail": "https://i.ytimg.com/vi/WUfV1lj_kQY/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=WUfV1lj_kQY"
+    },
+    {
+      "videoId": "NhIGWG-wMDo",
+      "title": "Ağır Roman",
+      "artist": "Sansar Salvo",
+      "durationSec": 204,
+      "thumbnail": "https://i.ytimg.com/vi/NhIGWG-wMDo/sddefault.jpg",
+      "url": "https://www.youtube.com/watch?v=NhIGWG-wMDo"
+    },
+    {
+      "videoId": "0_4ubydxWGU",
+      "title": "Kutsal - Battle Royal (2009)",
+      "artist": "Saian & Karaçalı",
+      "durationSec": 219,
+      "thumbnail": "https://i.ytimg.com/vi/0_4ubydxWGU/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=0_4ubydxWGU"
+    },
+    {
+      "videoId": "J6S-JvTgr58",
+      "title": "(hayata isyan)",
+      "artist": "SansaR saLvo-21 gRam",
+      "durationSec": 174,
+      "thumbnail": "https://i.ytimg.com/vi/J6S-JvTgr58/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=J6S-JvTgr58"
+    },
+    {
+      "videoId": "_NZ6GGgoejg",
+      "title": "Not Defteri",
+      "artist": "İzah",
+      "durationSec": 111,
+      "thumbnail": "https://i.ytimg.com/vi/_NZ6GGgoejg/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=_NZ6GGgoejg"
+    },
+    {
+      "videoId": "dZH7DNor-G8",
+      "title": "Okyanuslar",
+      "artist": "Fuat",
+      "durationSec": 236,
+      "thumbnail": "https://i.ytimg.com/vi/dZH7DNor-G8/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=dZH7DNor-G8"
+    },
+    {
+      "videoId": "EDbMiKv_bgM",
+      "title": "Ben, Sen ve Yalnızlık ft. Şanışer",
+      "artist": "Alef High",
+      "durationSec": 267,
+      "thumbnail": "https://i.ytimg.com/vi/EDbMiKv_bgM/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=EDbMiKv_bgM"
+    },
+    {
+      "videoId": "hJYOYwZCx0g",
+      "title": "34 Dramı",
+      "artist": "Sansar Salvo",
+      "durationSec": 179,
+      "thumbnail": "https://i.ytimg.com/vi/hJYOYwZCx0g/sddefault.jpg",
+      "url": "https://www.youtube.com/watch?v=hJYOYwZCx0g"
+    },
+    {
+      "videoId": "XQ92dj94SYg",
+      "title": "H.A.G.G.G",
+      "artist": "Şehinşah ft. Pit10",
+      "durationSec": 180,
+      "thumbnail": "https://i.ytimg.com/vi/XQ92dj94SYg/sddefault.jpg",
+      "url": "https://www.youtube.com/watch?v=XQ92dj94SYg"
+    },
+    {
+      "videoId": "RrMSVSiixyU",
+      "title": "Şanışer & Noiser Son Kandil (2010)",
+      "artist": "Ahmet Cenan Tunç",
+      "durationSec": 203,
+      "thumbnail": "https://i.ytimg.com/vi/RrMSVSiixyU/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=RrMSVSiixyU"
+    },
+    {
+      "videoId": "EmJQXCq0g-8",
+      "title": "Birden",
+      "artist": "Pit10",
+      "durationSec": 252,
+      "thumbnail": "https://i.ytimg.com/vi/EmJQXCq0g-8/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=EmJQXCq0g-8"
+    },
+    {
+      "videoId": "ELtUbh9htBI",
+      "title": "Kanunsuzlar",
+      "artist": "Saian",
+      "durationSec": 183,
+      "thumbnail": "https://i.ytimg.com/vi/ELtUbh9htBI/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=ELtUbh9htBI"
+    },
+    {
+      "videoId": "oeZ-0JYonq4",
+      "title": "Bombalar Hedef Bulur",
+      "artist": "Sansar Salvo",
+      "durationSec": 259,
+      "thumbnail": "https://i.ytimg.com/vi/oeZ-0JYonq4/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=oeZ-0JYonq4"
+    },
+    {
+      "videoId": "N9gN7GqjuRE",
+      "title": "Güller&Rhyme",
+      "artist": "Şehinşah",
+      "durationSec": 260,
+      "thumbnail": "https://i.ytimg.com/vi/N9gN7GqjuRE/sddefault.jpg",
+      "url": "https://www.youtube.com/watch?v=N9gN7GqjuRE"
+    },
+    {
+      "videoId": "LKMkCLnWkKM",
+      "title": "Akşamlar",
+      "artist": "Doğaç",
+      "durationSec": 225,
+      "thumbnail": "https://i.ytimg.com/vi/LKMkCLnWkKM/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=LKMkCLnWkKM"
+    },
+    {
+      "videoId": "lieJg_wMysY",
+      "title": "Al Sevgilim Anne Ol Bununla",
+      "artist": "Saian",
+      "durationSec": 247,
+      "thumbnail": "https://i.ytimg.com/vi/lieJg_wMysY/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=lieJg_wMysY"
+    },
+    {
+      "videoId": "TkeuzzNJXPM",
+      "title": "Matiz Mektuplar 1 (Stüdyo Performans) (Beat by Ouz Baydar)",
+      "artist": "İndigo",
+      "durationSec": 188,
+      "thumbnail": "https://i.ytimg.com/vi/TkeuzzNJXPM/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=TkeuzzNJXPM"
+    },
+    {
+      "videoId": "C0i2jaRK2n4",
+      "title": "Sonbahar",
+      "artist": "Da Poet",
+      "durationSec": 224,
+      "thumbnail": "https://i.ytimg.com/vi/C0i2jaRK2n4/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=C0i2jaRK2n4"
+    },
+    {
+      "videoId": "jV0SdqnUtFE",
+      "title": "Doldu Şarjör",
+      "artist": "Şehinşah ft. Sansar Salvo",
+      "durationSec": 185,
+      "thumbnail": "https://i.ytimg.com/vi/jV0SdqnUtFE/sddefault.jpg",
+      "url": "https://www.youtube.com/watch?v=jV0SdqnUtFE"
+    },
+    {
+      "videoId": "qIaxFVAKpYE",
+      "title": "Makber",
+      "artist": "Saian",
+      "durationSec": 169,
+      "thumbnail": "https://i.ytimg.com/vi/qIaxFVAKpYE/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=qIaxFVAKpYE"
+    },
+    {
+      "videoId": "pVGzzvW3e8E",
+      "title": "180 km.",
+      "artist": "sansar salvo",
+      "durationSec": 226,
+      "thumbnail": "https://i.ytimg.com/vi/pVGzzvW3e8E/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=pVGzzvW3e8E"
+    },
+    {
+      "videoId": "TtKOpEpIGXc",
+      "title": "Zaman Gibi",
+      "artist": "Allame",
+      "durationSec": 211,
+      "thumbnail": "https://i.ytimg.com/vi/TtKOpEpIGXc/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=TtKOpEpIGXc"
+    },
+    {
+      "videoId": "4eAQIXcvJ3A",
+      "title": "Duygusal Olmaya Gerek Yok",
+      "artist": "Şehinşah ft. Sansar Salvo",
+      "durationSec": 397,
+      "thumbnail": "https://i.ytimg.com/vi/4eAQIXcvJ3A/sddefault.jpg",
+      "url": "https://www.youtube.com/watch?v=4eAQIXcvJ3A"
+    },
+    {
+      "videoId": "6Id8vF4dzlU",
+      "title": "Hayale Daldım (feat. Da Poet)",
+      "artist": "Kamufle",
+      "durationSec": 251,
+      "thumbnail": "https://i.ytimg.com/vi/6Id8vF4dzlU/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=6Id8vF4dzlU"
+    },
+    {
+      "videoId": "_JmwP-38mzo",
+      "title": "Dropshit (2011)",
+      "artist": "Santi Feat. Joker&Allame",
+      "durationSec": 241,
+      "thumbnail": "https://i.ytimg.com/vi/_JmwP-38mzo/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=_JmwP-38mzo"
+    },
+    {
+      "videoId": "BZJPnqSVIYw",
+      "title": "İstedinde Olmadı (feat. Sansar Salvo)",
+      "artist": "Esin Iris",
+      "durationSec": 190,
+      "thumbnail": "https://i.ytimg.com/vi/BZJPnqSVIYw/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=BZJPnqSVIYw"
+    },
+    {
+      "videoId": "WIDNmUGcVSQ",
+      "title": "Pisi Pisine",
+      "artist": "Sansar Salvo",
+      "durationSec": 217,
+      "thumbnail": "https://i.ytimg.com/vi/WIDNmUGcVSQ/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=WIDNmUGcVSQ"
+    },
+    {
+      "videoId": "VC1WccF1xMs",
+      "title": "Şehinşah - Sahneyi Terkedin",
+      "artist": "Patron",
+      "durationSec": 157,
+      "thumbnail": "https://i.ytimg.com/vi/VC1WccF1xMs/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=VC1WccF1xMs"
+    },
+    {
+      "videoId": "eVS4KM2PXK4",
+      "title": "Bu Film Ölmelik",
+      "artist": "Hidra & Tankurt Manas & Harun Adil",
+      "durationSec": 235,
+      "thumbnail": "https://i.ytimg.com/vi/eVS4KM2PXK4/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=eVS4KM2PXK4"
+    },
+    {
+      "videoId": "NI7gf2-55xk",
+      "title": "Hayat Bu feat. Sansar Salvo,Seyit Yakut",
+      "artist": "11. İnzibat",
+      "durationSec": 200,
+      "thumbnail": "https://i.ytimg.com/vi/NI7gf2-55xk/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=NI7gf2-55xk"
+    },
+    {
+      "videoId": "Qg94UiJOJvg",
+      "title": "1imiz için hiç1imiz",
+      "artist": "Şehinşah ft. Kamufle",
+      "durationSec": 174,
+      "thumbnail": "https://i.ytimg.com/vi/Qg94UiJOJvg/sddefault.jpg",
+      "url": "https://www.youtube.com/watch?v=Qg94UiJOJvg"
+    },
+    {
+      "videoId": "ftvGlPnrZIg",
+      "title": "Hayki&Şehinşah&Fieber Ft. Patron & Elçin Orçun",
+      "artist": "Bilinmeyen Artizzzler",
+      "durationSec": 263,
+      "thumbnail": "https://i.ytimg.com/vi/ftvGlPnrZIg/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=ftvGlPnrZIg"
+    },
+    {
+      "videoId": "f0JVwF_bHDI",
+      "title": "Kangren",
+      "artist": "Saian",
+      "durationSec": 165,
+      "thumbnail": "https://i.ytimg.com/vi/f0JVwF_bHDI/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=f0JVwF_bHDI"
+    },
+    {
+      "videoId": "R63btbu0_O8",
+      "title": "Full Operasyon",
+      "artist": "Şehinşah ft. Sansar Salvo",
+      "durationSec": 679,
+      "thumbnail": "https://i.ytimg.com/vi/R63btbu0_O8/sddefault.jpg",
+      "url": "https://www.youtube.com/watch?v=R63btbu0_O8"
+    },
+    {
+      "videoId": "4NvNZDdEvR0",
+      "title": "Yıkık Mavi Köşk",
+      "artist": "Ulaş Taçdelen",
+      "durationSec": 216,
+      "thumbnail": "https://i.ytimg.com/vi/4NvNZDdEvR0/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=4NvNZDdEvR0"
+    },
+    {
+      "videoId": "SeWVRTJowxU",
+      "title": "İstila",
+      "artist": "Şehinşah",
+      "durationSec": 227,
+      "thumbnail": "https://i.ytimg.com/vi/SeWVRTJowxU/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=SeWVRTJowxU"
+    },
+    {
+      "videoId": "BcRRmGLSZvk",
+      "title": "Lavanta",
+      "artist": "Stabil",
+      "durationSec": 92,
+      "thumbnail": "https://i.ytimg.com/vi/BcRRmGLSZvk/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=BcRRmGLSZvk"
+    },
+    {
+      "videoId": "hsPsLkbjUFY",
+      "title": "Rahat Ol",
+      "artist": "Sansar Salvo ft Şehinşah & Hayki & Telaş",
+      "durationSec": 188,
+      "thumbnail": "https://i.ytimg.com/vi/hsPsLkbjUFY/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=hsPsLkbjUFY"
+    },
+    {
+      "videoId": "SW374O18DJ0",
+      "title": "Sensiz Anlamsızım ( Alcatraz Connectionz )",
+      "artist": "Rahdan-Medusa-Onat",
+      "durationSec": 254,
+      "thumbnail": "https://i.ytimg.com/vi/SW374O18DJ0/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=SW374O18DJ0"
+    },
+    {
+      "videoId": "CvnwHtrZzdY",
+      "title": "Makina",
+      "artist": "Selim Muran",
+      "durationSec": 203,
+      "thumbnail": "https://i.ytimg.com/vi/CvnwHtrZzdY/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=CvnwHtrZzdY"
+    },
+    {
+      "videoId": "vh2eB7aZYKM",
+      "title": "Basım Evi",
+      "artist": "Derya",
+      "durationSec": 205,
+      "thumbnail": "https://i.ytimg.com/vi/vh2eB7aZYKM/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=vh2eB7aZYKM"
+    },
+    {
+      "videoId": "t-Bkgg7vT-M",
+      "title": "Tepki",
+      "artist": "Constantine",
+      "durationSec": 235,
+      "thumbnail": "https://i.ytimg.com/vi/t-Bkgg7vT-M/sddefault.jpg",
+      "url": "https://www.youtube.com/watch?v=t-Bkgg7vT-M"
+    },
+    {
+      "videoId": "alWKnlbrs9g",
+      "title": "Tetris ile Scratch Atan Adam",
+      "artist": "Cumali Efrah",
+      "durationSec": 186,
+      "thumbnail": "https://i.ytimg.com/vi/alWKnlbrs9g/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=alWKnlbrs9g"
+    },
+    {
+      "videoId": "-WBMoPWnKyE",
+      "title": "Kılıç Günü",
+      "artist": "Cumali Efrah",
+      "durationSec": 127,
+      "thumbnail": "https://i.ytimg.com/vi/-WBMoPWnKyE/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=-WBMoPWnKyE"
+    },
+    {
+      "videoId": "45OmumUqIJg",
+      "title": "Erkan-ı Harbiye Part II Ft. Cumali Efrah",
+      "artist": "Kamufle",
+      "durationSec": 225,
+      "thumbnail": "https://i.ytimg.com/vi/45OmumUqIJg/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=45OmumUqIJg"
+    },
+    {
+      "videoId": "R921PAloNE8",
+      "title": "He-man",
+      "artist": "Cumali Efrah",
+      "durationSec": 172,
+      "thumbnail": "https://i.ytimg.com/vi/R921PAloNE8/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=R921PAloNE8"
+    },
+    {
+      "videoId": "JTOYrXFUlCE",
+      "title": "Arteriyoskleroz",
+      "artist": "Cumali Efrah & Sokrat ST",
+      "durationSec": 150,
+      "thumbnail": "https://i.ytimg.com/vi/JTOYrXFUlCE/sddefault.jpg",
+      "url": "https://www.youtube.com/watch?v=JTOYrXFUlCE"
+    },
+    {
+      "videoId": "s1CAJcSVWuA",
+      "title": "Deli Kadın",
+      "artist": "Cumali Efrah ft. Deniz Erkin",
+      "durationSec": 191,
+      "thumbnail": "https://i.ytimg.com/vi/s1CAJcSVWuA/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=s1CAJcSVWuA"
+    },
+    {
+      "videoId": "J4baAzGnkCc",
+      "title": "Kılıç Günü",
+      "artist": "Cumali Efrah",
+      "durationSec": 127,
+      "thumbnail": "https://i.ytimg.com/vi/J4baAzGnkCc/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=J4baAzGnkCc"
+    },
+    {
+      "videoId": "jy4LewLDnCQ",
+      "title": "Düşünmekten Bir Hal Oldum",
+      "artist": "Şanışer",
+      "durationSec": 266,
+      "thumbnail": "https://i.ytimg.com/vi/jy4LewLDnCQ/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=jy4LewLDnCQ"
+    },
+    {
+      "videoId": "dE65Dl-_OtA",
+      "title": "Deliren Dengeler",
+      "artist": "Pit10",
+      "durationSec": 263,
+      "thumbnail": "https://i.ytimg.com/vi/dE65Dl-_OtA/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=dE65Dl-_OtA"
+    },
+    {
+      "videoId": "2p2LHHg0WKU",
+      "title": "Şimdilerde Hayal",
+      "artist": "Pit10 & Sansar",
+      "durationSec": 190,
+      "thumbnail": "https://i.ytimg.com/vi/2p2LHHg0WKU/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=2p2LHHg0WKU"
+    },
+    {
+      "videoId": "mKdCmB_Q_AE",
+      "title": "Hiphop Okulu",
+      "artist": "Şehinşah",
+      "durationSec": 211,
+      "thumbnail": "https://i.ytimg.com/vi/mKdCmB_Q_AE/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=mKdCmB_Q_AE"
+    },
+    {
+      "videoId": "I3PRhnVB_jU",
+      "title": "Hayalin Yeri Yok",
+      "artist": "Allame",
+      "durationSec": 207,
+      "thumbnail": "https://i.ytimg.com/vi/I3PRhnVB_jU/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=I3PRhnVB_jU"
+    },
+    {
+      "videoId": "NtkAaW7VCxU",
+      "title": "Patron - Şahmeran",
+      "artist": "Şehinşah",
+      "durationSec": 167,
+      "thumbnail": "https://i.ytimg.com/vi/NtkAaW7VCxU/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=NtkAaW7VCxU"
+    },
+    {
+      "videoId": "M6YLiq7-crE",
+      "title": "Gelsin Hayat Bildiği Gibi feat. Sezen Aksu",
+      "artist": "Ceza",
+      "durationSec": 296,
+      "thumbnail": "https://i.ytimg.com/vi/M6YLiq7-crE/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=M6YLiq7-crE"
+    },
+    {
+      "videoId": "CzfStlYuqoc",
+      "title": "Sorunumuz Var",
+      "artist": "Kamufle & Red",
+      "durationSec": 261,
+      "thumbnail": "https://i.ytimg.com/vi/CzfStlYuqoc/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=CzfStlYuqoc"
+    },
+    {
+      "videoId": "tpIoI0zyMoA",
+      "title": "Ekmek,Yoğurt,Gaz yağı,Soğan,Bomba",
+      "artist": "Hayki",
+      "durationSec": 195,
+      "thumbnail": "https://i.ytimg.com/vi/tpIoI0zyMoA/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=tpIoI0zyMoA"
+    },
+    {
+      "videoId": "ozCe-Gphf4o",
+      "title": "Gönderilmemiş Mektuplar / Gönderilmemis mektuplar",
+      "artist": "Sansar Salvo feat. Pit10",
+      "durationSec": 189,
+      "thumbnail": "https://i.ytimg.com/vi/ozCe-Gphf4o/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=ozCe-Gphf4o"
+    },
+    {
+      "videoId": "RbFArLoaH0U",
+      "title": "06. Yakana Taktık",
+      "artist": "(Hayki feat Kraliçe Yas)",
+      "durationSec": 145,
+      "thumbnail": "https://i.ytimg.com/vi/RbFArLoaH0U/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=RbFArLoaH0U"
+    },
+    {
+      "videoId": "jumEBnkO57E",
+      "title": "Kraliçe Yas ft Hayki Bedavaya Satıcaz",
+      "artist": "Kraliçe Yas",
+      "durationSec": 162,
+      "thumbnail": "https://i.ytimg.com/vi/jumEBnkO57E/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=jumEBnkO57E"
+    },
+    {
+      "videoId": "Q2jySe_Bqzs",
+      "title": "Ofsayt Yrrm ( Diss Mualif & Arslantürk )",
+      "artist": "Red",
+      "durationSec": 238,
+      "thumbnail": "https://i.ytimg.com/vi/Q2jySe_Bqzs/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=Q2jySe_Bqzs"
+    },
+    {
+      "videoId": "HiY60S6ww_g",
+      "title": "Eksik Sonbahar",
+      "artist": "Şehinşah ft. Patron",
+      "durationSec": 128,
+      "thumbnail": "https://i.ytimg.com/vi/HiY60S6ww_g/sddefault.jpg",
+      "url": "https://www.youtube.com/watch?v=HiY60S6ww_g"
+    },
+    {
+      "videoId": "dRjFdnBSZTU",
+      "title": "Saian & Hayki & Karaçalı & Da Poet & Patron Dinozor",
+      "artist": "Yıldırım Atcıoglu",
+      "durationSec": 309,
+      "thumbnail": "https://i.ytimg.com/vi/dRjFdnBSZTU/sddefault.jpg",
+      "url": "https://www.youtube.com/watch?v=dRjFdnBSZTU"
+    },
+    {
+      "videoId": "KanOS6YN7Gg",
+      "title": "Skor - Aksi İstikamet (2007)",
+      "artist": "Da Poet & Patron feat. Karaçalı & Saian",
+      "durationSec": 301,
+      "thumbnail": "https://i.ytimg.com/vi/KanOS6YN7Gg/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=KanOS6YN7Gg"
+    },
+    {
+      "videoId": "fZQQGi2-B5c",
+      "title": "Kafamın İçini Görsen Ne Güzel Olurdu",
+      "artist": "Onur Uğur",
+      "durationSec": 220,
+      "thumbnail": "https://i.ytimg.com/vi/fZQQGi2-B5c/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=fZQQGi2-B5c"
+    },
+    {
+      "videoId": "Rizdz8fEWrg",
+      "title": "Çocuklar Duymasın (Diss to Mualif Matem) -Sözleriyle",
+      "artist": "Red",
+      "durationSec": 171,
+      "thumbnail": "https://i.ytimg.com/vi/Rizdz8fEWrg/sddefault.jpg",
+      "url": "https://www.youtube.com/watch?v=Rizdz8fEWrg"
+    },
+    {
+      "videoId": "XIZELXszVkc",
+      "title": "Rec, Play , Pause ''feat-Sansar SALVO & Xir GÖKDENİZ''",
+      "artist": "Şehinşah",
+      "durationSec": 270,
+      "thumbnail": "https://i.ytimg.com/vi/XIZELXszVkc/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=XIZELXszVkc"
+    },
+    {
+      "videoId": "eHWqH_2pzRo",
+      "title": "Hastalık",
+      "artist": "Constantine",
+      "durationSec": 260,
+      "thumbnail": "https://i.ytimg.com/vi/eHWqH_2pzRo/sddefault.jpg",
+      "url": "https://www.youtube.com/watch?v=eHWqH_2pzRo"
+    },
+    {
+      "videoId": "n1mfP0CHmL8",
+      "title": "Bela feat Sokrat Naber Ortak ßy.eL€zEn (Kalite SeS)",
+      "artist": "Yasin Akar",
+      "durationSec": 394,
+      "thumbnail": "https://i.ytimg.com/vi/n1mfP0CHmL8/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=n1mfP0CHmL8"
+    },
+    {
+      "videoId": "FqYOwYk6mxg",
+      "title": "Canavar",
+      "artist": "Yunus Emre & Frekans",
+      "durationSec": 263,
+      "thumbnail": "https://i.ytimg.com/vi/FqYOwYk6mxg/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=FqYOwYk6mxg"
+    },
+    {
+      "videoId": "EJyy-kN7WDo",
+      "title": "Insomnia",
+      "artist": "Yunus Emre & Frekans",
+      "durationSec": 186,
+      "thumbnail": "https://i.ytimg.com/vi/EJyy-kN7WDo/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=EJyy-kN7WDo"
+    },
+    {
+      "videoId": "qFBPoKmvKnI",
+      "title": "Akıl Hastası",
+      "artist": "Tankurt Manas Ft. Allame",
+      "durationSec": 223,
+      "thumbnail": "https://i.ytimg.com/vi/qFBPoKmvKnI/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=qFBPoKmvKnI"
+    },
+    {
+      "videoId": "ds_jwIJ0LUY",
+      "title": "Deli Müziği",
+      "artist": "Sansar",
+      "durationSec": 223,
+      "thumbnail": "https://i.ytimg.com/vi/ds_jwIJ0LUY/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=ds_jwIJ0LUY"
+    },
+    {
+      "videoId": "jSl8EqpMn0c",
+      "title": "Ayrı İnsanların Dünyaları",
+      "artist": "Onur Uğur & Harun Adil",
+      "durationSec": 175,
+      "thumbnail": "https://i.ytimg.com/vi/jSl8EqpMn0c/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=jSl8EqpMn0c"
+    },
+    {
+      "videoId": "JAj6JvYF-pE",
+      "title": "Kördüğüm (feat. Ceza) | Poetika",
+      "artist": "Da Poet",
+      "durationSec": 300,
+      "thumbnail": "https://i.ytimg.com/vi/JAj6JvYF-pE/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=JAj6JvYF-pE"
+    },
+    {
+      "videoId": "GtRrH3fg_Oo",
+      "title": "Gece Yarısı Ekspresi",
+      "artist": "Redo Feat. Hidra",
+      "durationSec": 250,
+      "thumbnail": "https://i.ytimg.com/vi/GtRrH3fg_Oo/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=GtRrH3fg_Oo"
+    },
+    {
+      "videoId": "0WvrI_fuHBo",
+      "title": "Soyun Kurur feat. Saian",
+      "artist": "Allame",
+      "durationSec": 184,
+      "thumbnail": "https://i.ytimg.com/vi/0WvrI_fuHBo/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=0WvrI_fuHBo"
+    },
+    {
+      "videoId": "w2b6JeB8vZw",
+      "title": "Hiç Sevmedim Seni ( Lyric Video ) Produced by Da Poet - Scratch by Dj Sivo",
+      "artist": "Da Poet & Hayki",
+      "durationSec": 286,
+      "thumbnail": "https://i.ytimg.com/vi/w2b6JeB8vZw/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=w2b6JeB8vZw"
+    },
+    {
+      "videoId": "fOiVO0FVu_I",
+      "title": "Kokain Yok",
+      "artist": "Sansar Salvo",
+      "durationSec": 226,
+      "thumbnail": "https://i.ytimg.com/vi/fOiVO0FVu_I/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=fOiVO0FVu_I"
+    },
+    {
+      "videoId": "oizt4-vGNQA",
+      "title": "Kim Bilir",
+      "artist": "Ceza",
+      "durationSec": 256,
+      "thumbnail": "https://i.ytimg.com/vi/oizt4-vGNQA/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=oizt4-vGNQA"
+    },
+    {
+      "videoId": "fF1tdSH3HWM",
+      "title": "Benim Dünyam",
+      "artist": "Hayki",
+      "durationSec": 201,
+      "thumbnail": "https://i.ytimg.com/vi/fF1tdSH3HWM/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=fF1tdSH3HWM"
+    },
+    {
+      "videoId": "sW0Jqk4K2nk",
+      "title": "Haşşaşin Marşı",
+      "artist": "Şehinşah",
+      "durationSec": 91,
+      "thumbnail": "https://i.ytimg.com/vi/sW0Jqk4K2nk/sddefault.jpg",
+      "url": "https://www.youtube.com/watch?v=sW0Jqk4K2nk"
+    },
+    {
+      "videoId": "G8q_0zaoKjI",
+      "title": "Deli Kadın",
+      "artist": "Cumali Efrah & Deniz Erkin",
+      "durationSec": 191,
+      "thumbnail": "https://i.ytimg.com/vi/G8q_0zaoKjI/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=G8q_0zaoKjI"
+    },
+    {
+      "videoId": "RTdaDDELhRM",
+      "title": "Hepsi Benim",
+      "artist": "Şehinşah",
+      "durationSec": 118,
+      "thumbnail": "https://i.ytimg.com/vi/RTdaDDELhRM/sddefault.jpg",
+      "url": "https://www.youtube.com/watch?v=RTdaDDELhRM"
+    },
+    {
+      "videoId": "HyGKPI2kNqM",
+      "title": "Ölürsem Bu Gün",
+      "artist": "Sansar Salvo",
+      "durationSec": 204,
+      "thumbnail": "https://i.ytimg.com/vi/HyGKPI2kNqM/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=HyGKPI2kNqM"
+    },
+    {
+      "videoId": "79SsZK4IR28",
+      "title": "İsyan",
+      "artist": "Redo feat. Joker",
+      "durationSec": 171,
+      "thumbnail": "https://i.ytimg.com/vi/79SsZK4IR28/sddefault.jpg",
+      "url": "https://www.youtube.com/watch?v=79SsZK4IR28"
+    },
+    {
+      "videoId": "XVdlalSk8Fg",
+      "title": "Seda Saian ( Saian Diss )",
+      "artist": "Pusat feat Beta",
+      "durationSec": 195,
+      "thumbnail": "https://i.ytimg.com/vi/XVdlalSk8Fg/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=XVdlalSk8Fg"
+    },
+    {
+      "videoId": "wl0ifWioYnE",
+      "title": "Yağmasam da Gürlüyorum (feat Saian SS) - Kinetik Tipografi",
+      "artist": "Patron",
+      "durationSec": 151,
+      "thumbnail": "https://i.ytimg.com/vi/wl0ifWioYnE/sddefault.jpg",
+      "url": "https://www.youtube.com/watch?v=wl0ifWioYnE"
+    },
+    {
+      "videoId": "msM_e2tjBSo",
+      "title": "Seppuku Melodisi",
+      "artist": "Hayki",
+      "durationSec": 133,
+      "thumbnail": "https://i.ytimg.com/vi/msM_e2tjBSo/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=msM_e2tjBSo"
+    },
+    {
+      "videoId": "oWiv1BBHaWk",
+      "title": "Albert De Salvo",
+      "artist": "Sansar Salvo",
+      "durationSec": 181,
+      "thumbnail": "https://i.ytimg.com/vi/oWiv1BBHaWk/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=oWiv1BBHaWk"
+    },
+    {
+      "videoId": "CrehYAz1tqw",
+      "title": "Bırak Beni Kendi Halime",
+      "artist": "Şanışer",
+      "durationSec": 165,
+      "thumbnail": "https://i.ytimg.com/vi/CrehYAz1tqw/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=CrehYAz1tqw"
+    },
+    {
+      "videoId": "zkTkbpv93Uw",
+      "title": "Pit10-BEnden Nefret Ediyorsunuz",
+      "artist": "fuatgfb",
+      "durationSec": 162,
+      "thumbnail": "https://i.ytimg.com/vi/zkTkbpv93Uw/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=zkTkbpv93Uw"
+    },
+    {
+      "videoId": "-v8qVmNbm14",
+      "title": "İçimdeki Herşey",
+      "artist": "Şanışer",
+      "durationSec": 271,
+      "thumbnail": "https://i.ytimg.com/vi/-v8qVmNbm14/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=-v8qVmNbm14"
+    },
+    {
+      "videoId": "KceahPA3z8Q",
+      "title": "Sansar Salvo ~ Gariban",
+      "artist": "Cengiz Han Akpınar",
+      "durationSec": 164,
+      "thumbnail": "https://i.ytimg.com/vi/KceahPA3z8Q/sddefault.jpg",
+      "url": "https://www.youtube.com/watch?v=KceahPA3z8Q"
+    },
+    {
+      "videoId": "kFKeGFVfLfA",
+      "title": "Katil Olmak İçin Güzel Bir Gün",
+      "artist": "Pit10",
+      "durationSec": 192,
+      "thumbnail": "https://i.ytimg.com/vi/kFKeGFVfLfA/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=kFKeGFVfLfA"
+    },
+    {
+      "videoId": "BjiJ5DtvMIo",
+      "title": "Son Sigara [@ Livetape]",
+      "artist": "Sansar Salvo",
+      "durationSec": 88,
+      "thumbnail": "https://i.ytimg.com/vi/BjiJ5DtvMIo/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=BjiJ5DtvMIo"
+    },
+    {
+      "videoId": "OT-N6bbtB7o",
+      "title": "Senden Nefret Ediyorum",
+      "artist": "Şehinşah",
+      "durationSec": 184,
+      "thumbnail": "https://i.ytimg.com/vi/OT-N6bbtB7o/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=OT-N6bbtB7o"
+    },
+    {
+      "videoId": "XBFCYRXsmd4",
+      "title": "Esmeralda İçin Kambur Akımı ( Alcatraz Connectionz )",
+      "artist": "Sansar Salvo",
+      "durationSec": 289,
+      "thumbnail": "https://i.ytimg.com/vi/XBFCYRXsmd4/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=XBFCYRXsmd4"
+    },
+    {
+      "videoId": "ApLieKzAcHE",
+      "title": "Underground Legends",
+      "artist": "Şehinşah&Hayki&Fieber ft. Neşter Nino",
+      "durationSec": 241,
+      "thumbnail": "https://i.ytimg.com/vi/ApLieKzAcHE/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=ApLieKzAcHE"
+    },
+    {
+      "videoId": "gtmPA3D-cLc",
+      "title": "Erkan-ı Harbiye",
+      "artist": "Cumali Efrah ft. Ais Ezhel",
+      "durationSec": 196,
+      "thumbnail": "https://i.ytimg.com/vi/gtmPA3D-cLc/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=gtmPA3D-cLc"
+    },
+    {
+      "videoId": "nNEqSMtw3bs",
+      "title": "Izmir icin Rap Vakti (Diss Grogi&Anıl Piyancı)",
+      "artist": "Yeraltı TV ft Chabby",
+      "durationSec": 161,
+      "thumbnail": "https://i.ytimg.com/vi/nNEqSMtw3bs/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=nNEqSMtw3bs"
+    },
+    {
+      "videoId": "gaIc3ehJZPU",
+      "title": "Düzmece",
+      "artist": "Mode XL",
+      "durationSec": 231,
+      "thumbnail": "https://i.ytimg.com/vi/gaIc3ehJZPU/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=gaIc3ehJZPU"
+    },
+    {
+      "videoId": "afVwc3LFWK4",
+      "title": "2 Boş Adam",
+      "artist": "İndigo",
+      "durationSec": 190,
+      "thumbnail": "https://i.ytimg.com/vi/afVwc3LFWK4/sddefault.jpg",
+      "url": "https://www.youtube.com/watch?v=afVwc3LFWK4"
+    },
+    {
+      "videoId": "X2ZWpcFpXTg",
+      "title": "Farazi V kayra-Bir günlük öldürün beni",
+      "artist": "efe aydın",
+      "durationSec": 215,
+      "thumbnail": "https://i.ytimg.com/vi/X2ZWpcFpXTg/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=X2ZWpcFpXTg"
+    },
+    {
+      "videoId": "WfFpwt4nEo0",
+      "title": "Çatımda Radyolar",
+      "artist": "Farazi & Kayra (Of Gına)",
+      "durationSec": 278,
+      "thumbnail": "https://i.ytimg.com/vi/WfFpwt4nEo0/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=WfFpwt4nEo0"
+    },
+    {
+      "videoId": "Mm78Jwpp8Uo",
+      "title": "Problemler Baki feat. Mafsal",
+      "artist": "Sansar Salvo",
+      "durationSec": 191,
+      "thumbnail": "https://i.ytimg.com/vi/Mm78Jwpp8Uo/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=Mm78Jwpp8Uo"
+    },
+    {
+      "videoId": "u0uQR6cK3qk",
+      "title": "Dertler Biter mi ft. Narkoz",
+      "artist": "Ceza",
+      "durationSec": 375,
+      "thumbnail": "https://i.ytimg.com/vi/u0uQR6cK3qk/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=u0uQR6cK3qk"
+    },
+    {
+      "videoId": "2wnDebxFTfs",
+      "title": "Sitemin Duan Olsun",
+      "artist": "Mozole Mirach",
+      "durationSec": 264,
+      "thumbnail": "https://i.ytimg.com/vi/2wnDebxFTfs/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=2wnDebxFTfs"
+    },
+    {
+      "videoId": "4P0jikI7Ig0",
+      "title": "Susma",
+      "artist": "Raziel & Da Poet",
+      "durationSec": 235,
+      "thumbnail": "https://i.ytimg.com/vi/4P0jikI7Ig0/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=4P0jikI7Ig0"
+    },
+    {
+      "videoId": "-5OJgwJRwzM",
+      "title": "Şanışer Diss (Joaquin Civil'e Cevap)",
+      "artist": "DeWo Dw",
+      "durationSec": 117,
+      "thumbnail": "https://i.ytimg.com/vi/-5OJgwJRwzM/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=-5OJgwJRwzM"
+    },
+    {
+      "videoId": "ht72JR-xi7A",
+      "title": "Yolumuz Karanlığa",
+      "artist": "Joker & Fatal Mf & Kurşun",
+      "durationSec": 203,
+      "thumbnail": "https://i.ytimg.com/vi/ht72JR-xi7A/maxresdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=ht72JR-xi7A"
+    },
+    {
+      "videoId": "9aD8m4idd0w",
+      "title": "Fatal MF feat. Kamufle & Sokrat & Wiesel & Bels & KaraKaplan & Santi & Newada & Uğur Hakan",
+      "artist": "Fatal Mf",
+      "durationSec": 524,
+      "thumbnail": "https://i.ytimg.com/vi/9aD8m4idd0w/sddefault.jpg",
+      "url": "https://www.youtube.com/watch?v=9aD8m4idd0w"
+    }
+  ],
+  "updatedAt": "2026-08-16T16:19:26.204Z"
 }

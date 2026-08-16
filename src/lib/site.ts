@@ -1,11 +1,14 @@
 /**
  * Künye ve iletişim bilgileri — tek yerden değiştirilir.
  *
- * Buradaki değerler bilerek sahte. Bu dosya şablonun bir parçası ve fork alan
- * herkes onu miras alıyor; gerçek bir adres bırakılsa, kurulumu tamamlamayan
- * her sitede *başkasının* iletişim bilgisi yayınlanır ve kaldırma talepleri
- * yanlış gelen kutusuna düşerdi. Sahte değerler en kötü ihtimalle işe yaramaz;
- * gerçek değerler yanlış kişiye zarar verir.
+ * DİKKAT: bu dosya `production` branch'inde gerçek değerleri taşıyor; `main`
+ * ise nötr placeholder'larla duruyor. İkisi bilerek ayrı — `main` şablon ve
+ * fork alan herkes onu miras alıyor. Buradaki değerleri asla `main`'e merge
+ * etme; ters yönde (main -> production) merge güvenli.
+ *
+ * `main`'de bu alanlar bilerek sahte: dosya şablonun parçası, gerçek bir adres
+ * bırakılsa kurulumu tamamlamayan her fork *başkasının* iletişim bilgisini
+ * yayınlar ve kaldırma talepleri yanlış gelen kutusuna düşerdi.
  *
  * Neden ortam değişkeni değil: burası yapılı ve çoğalabilen veri tutuyor
  * (`socials` bir dizi). Env düz metin için; her hesap başına bir değişken
@@ -14,8 +17,8 @@
  */
 export const site = {
   author: {
-    name: "example.com",
-    url: "https://example.com",
+    name: "sungur.dev",
+    url: "https://sungur.dev",
   },
 
   /**
@@ -25,7 +28,9 @@ export const site = {
    * eklemek demek, arayüzde hiçbir değişiklik gerektirmiyor. Boş bırakılırsa
    * künye satırında hiç görünmezler.
    */
-  socials: [] as ReadonlyArray<{ label: string; url: string }>,
+  socials: [
+    { label: "@tahsingibi", url: "https://x.com/tahsingibi" },
+  ] as ReadonlyArray<{ label: string; url: string }>,
 
   /**
    * Kaldırma taleplerinin gideceği adres.
@@ -33,7 +38,7 @@ export const site = {
    * Fork'unu yayınlıyorsan burayı **mutlaka** değiştir: hak sahipleri
    * senin yayınladığın içerik için buraya yazacak.
    */
-  contactEmail: "you@example.com",
+  contactEmail: "mtahsinsungur@gmail.com",
 
   /** Kaynak kodun adresi — footer'daki GitHub bağlantısı buraya gider. */
   repoUrl: "https://github.com/tahsingibi/orbitcast",
@@ -48,7 +53,7 @@ export const site = {
    * çıksa koşul derleme anında hep doğru görünür, boş bırakma senaryosu
    * tipten kaybolurdu.
    */
-  supportUrl: "" as string,
+  supportUrl: "https://buymeacoffee.com/tahsingibi" as string,
 } as const;
 
 /**
