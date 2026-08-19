@@ -2,7 +2,7 @@
 
 **English:** [README.md](README.md)
 
-Kendi internet radyonu kur — sunucu ses yayınlamadan.
+Kendi internet radyonu kur — uygulama sunucun tek bayt ses taşımadan.
 
 Seçtiğin YouTube parçaları sırayla çalar. Siteye giren herkes o an yayında olan
 parçanın **aynı saniyesinden** dinlemeye başlar. Liste bitince başa döner ve
@@ -101,8 +101,9 @@ sarma diye bir şey yok.
 
 ## Nasıl çalışıyor?
 
-Sunucu müzik yayınlamaz, hatta neyin çaldığını "takip" bile etmez. Yayın
-konumu saf matematikle bulunur:
+Uygulama sunucusu ses taşımaz, hatta neyin çaldığını "takip" bile etmez. Yayın
+konumu saf matematikle bulunur; ses ise ya YouTube'un oynatıcısından ya da
+senin nesne deponden **doğrudan dinleyiciye** gider:
 
 ```
 total   = tüm parçaların süresi toplamı
@@ -791,11 +792,21 @@ Depo açık kaynak olduğu için **`/admin` yolunu herkes bilir**. Tek koruma
 
 ## Telif
 
-Bu uygulama hiçbir ses veya video dosyası **barındırmaz, indirmez, kopyalamaz
-veya yeniden yayınlamaz**. İçerik doğrudan YouTube'un kendi oynatıcısı ve
-altyapısı üzerinden, hak sahiplerinin YouTube'da yayınladığı hâliyle çalınır.
-Oynatma sırasında [YouTube Hizmet Şartları](https://www.youtube.com/t/terms)
-geçerlidir.
+Sorumluluk kurduğun yayın biçimine göre değişiyor — ikisini karıştırmamak
+önemli:
+
+**YouTube modunda** uygulama hiçbir ses veya video dosyası **barındırmaz,
+indirmez, kopyalamaz veya yeniden yayınlamaz**. İçerik doğrudan YouTube'un
+kendi oynatıcısı ve altyapısı üzerinden, hak sahiplerinin YouTube'da
+yayınladığı hâliyle çalınır. Oynatma sırasında
+[YouTube Hizmet Şartları](https://www.youtube.com/t/terms) geçerlidir.
+
+**Kendi dosyalarınla yayın yaptığında** durum tersine döner: dosyaları sen
+barındırırsın, dağıtırsın ve lisans sorumluluğu sana aittir. Yayınlama hakkına
+sahip olmadığın bir kaydı buraya koymak, onu YouTube'dan dinletmekle aynı şey
+değil. "Hakkında" penceresindeki telif beyanı da bunu izliyor: listede tek bir
+kendi dosyan varsa metin otomatik olarak barındırdığını söyleyen sürüme
+geçiyor.
 
 Sitede, hak sahiplerinin kaldırma talebi gönderebileceği bir iletişim adresi
 bulunur — bu adresi `src/lib/site.ts` içinde **kendi adresinle değiştirmen
