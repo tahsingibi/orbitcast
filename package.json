@@ -19,6 +19,9 @@
     "check": "npm run lint && tsc --noEmit && npm test",
     "radio:setup": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/setup.mjs",
     "radio:add": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/add.mjs",
+    "radio:match": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/match.mjs",
+    "radio:reset": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/reset.mjs",
+    "radio:covers": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/covers.mjs",
     "radio:sync": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/sync-playlist.mjs"
   },
   "dependencies": {

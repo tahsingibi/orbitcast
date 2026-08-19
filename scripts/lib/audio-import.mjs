@@ -1,50 +1,39 @@
 /**
  * Bir klasördeki ses dosyalarını yayına hazır parçalara çevirir.
  *
- * Dosyalar `public/audio/` altına kopyalanır — çünkü yayınlanabilmeleri için
- * repoda olmaları gerekir. Başlık, sanatçı ve kapak varsa ID3 etiketlerinden,
- * yoksa dosya adından türetilir.
+ * Dosyalar yapılandırılmış depoya yazılır (`src/lib/storage`): varsayılan
+ * `public/audio/`, R2 tanımlıysa oraya. Parçanın `src` alanı deponun döndürdüğü
+ * adres oluyor, o yüzden geri kalan hiçbir yerin depoyu bilmesi gerekmiyor.
+ * Başlık, sanatçı ve kapak varsa ID3 etiketlerinden, yoksa dosya adından
+ * türetilir.
  *
  * Süre burada kritik: senkronizasyonun tamamı ona dayanıyor. Süresi
  * okunamayan dosya sessizce atlanır, listeyi bozmasına izin verilmez.
  */
 
-import { copyFile, mkdir, readdir, stat, writeFile } from "node:fs/promises";
+import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 
-import { readAudioFile } from "./mp3.mjs";
+import { fromFilename, normalizeFolderPath, slugify } from "../../src/lib/audio-meta.ts";
+import { contentTypeFor, resolveStorage } from "../../src/lib/storage/index.ts";
+import { readAudioFile } from "../../src/lib/mp3.mjs";
 import { ROOT } from "./store.mjs";
 
 const AUDIO_EXTENSIONS = new Set([".mp3", ".m4a", ".aac", ".ogg", ".opus", ".wav", ".flac"]);
 
-const PUBLIC_DIR = path.join(ROOT, "public");
-const AUDIO_DIR = path.join(PUBLIC_DIR, "audio");
-const COVER_DIR = path.join(AUDIO_DIR, "covers");
+// Yazma işini artık depo yapıyor; bu yol yalnızca "dosya zaten hedefinde mi"
+// sorusunu cevaplamak için duruyor.
+const AUDIO_DIR = path.join(ROOT, "public", "audio");
 
-const TR_MAP = { ç: "c", ğ: "g", ı: "i", ö: "o", ş: "s", ü: "u", â: "a", î: "i", û: "u" };
+// Kimlik ve ad çözümleme paneldeki yüklemeyle ortak: aynı dosya iki yoldan da
+// eklense aynı kimliği almalı, yoksa depoda ikinci bir kopya oluşur.
+export { slugify };
 
-/** Dosya adından adres güvenli, kararlı bir kimlik üretir. */
-export function slugify(value) {
-  const lowered = String(value)
-    .toLocaleLowerCase("tr")
-    .replace(/[çğıöşüâîû]/g, (ch) => TR_MAP[ch] ?? ch);
-
-  return (
-    lowered
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 60) || "parca"
-  );
-}
-
-/** "Ceza - Suspus.mp3" -> { artist: "Ceza", title: "Suspus" } */
-function fromFilename(fileName) {
-  const base = fileName.replace(/\.[^.]+$/, "").replace(/^\d+[\s.\-_]+/, "");
-  const split = base.match(/^(.+?)\s+[-–—]\s+(.+)$/);
-  if (split) return { artist: split[1].trim(), title: split[2].trim() };
-  return { artist: "", title: base.trim() };
+/** MIME'den depo uzantısı; kapak neyse o uzantıyla saklanmalı. */
+function coverExtension(mime) {
+  if (mime === "image/png") return "png";
+  if (mime === "image/webp") return "webp";
+  return "jpg";
 }
 
 async function collectFiles(dir) {
@@ -79,7 +68,7 @@ async function collectFiles(dir) {
  * @param onProgress İsteğe bağlı ilerleme geri çağrısı.
  */
 export async function importAudioFolder(folder, existing = new Set(), onProgress) {
-  const resolved = path.resolve(folder.replace(/^~/, process.env.HOME ?? "~"));
+  const resolved = path.resolve(normalizeFolderPath(folder));
 
   const info = await stat(resolved).catch(() => null);
   if (!info?.isDirectory()) throw new Error("AUDIO_FOLDER_NOT_FOUND");
@@ -87,7 +76,7 @@ export async function importAudioFolder(folder, existing = new Set(), onProgress
   const files = await collectFiles(resolved);
   if (files.length === 0) throw new Error("AUDIO_FOLDER_EMPTY");
 
-  await mkdir(AUDIO_DIR, { recursive: true });
+  const storage = resolveStorage();
 
   const tracks = [];
   const skipped = [];
@@ -119,26 +108,34 @@ export async function importAudioFolder(folder, existing = new Set(), onProgress
     }
 
     const extension = path.extname(file).toLowerCase();
-    const target = path.join(AUDIO_DIR, `${id}${extension}`);
+    const key = `${id}${extension}`;
+    const data = await readFile(file);
 
-    // Zaten public/audio içindeyse kopyalamaya gerek yok.
-    if (path.resolve(file) !== target) await copyFile(file, target);
+    // Yerel depoda dosya zaten hedefindeyse üzerine yazmanın anlamı yok.
+    const inPlace =
+      storage.kind === "local" && path.resolve(file) === path.join(AUDIO_DIR, key);
+
+    const src = inPlace
+      ? `/audio/${key}`
+      : await storage.put({ key, body: data, contentType: contentTypeFor(key) });
 
     let thumbnail = "";
     if (meta.picture) {
-      await mkdir(COVER_DIR, { recursive: true });
-      const coverExt = meta.picture.mime === "image/png" ? "png" : "jpg";
-      await writeFile(path.join(COVER_DIR, `${id}.${coverExt}`), meta.picture.data);
-      thumbnail = `/audio/covers/${id}.${coverExt}`;
+      const coverKey = `covers/${id}.${coverExtension(meta.picture.mime)}`;
+      thumbnail = await storage.put({
+        key: coverKey,
+        body: meta.picture.data,
+        contentType: contentTypeFor(coverKey),
+      });
     }
 
     existing.add(id);
-    bytes += (await stat(target)).size;
+    bytes += data.length;
 
     tracks.push({
       kind: "audio",
       videoId: id,
-      src: `/audio/${id}${extension}`,
+      src,
       title,
       artist,
       durationSec: Math.round(meta.durationSec),
@@ -147,5 +144,5 @@ export async function importAudioFolder(folder, existing = new Set(), onProgress
     });
   }
 
-  return { tracks, skipped, bytes };
+  return { tracks, skipped, bytes, storage: storage.kind };
 }

@@ -45,16 +45,24 @@ export default function EmptyStation({ name, showSetupHint = false }: Props) {
             </code>
           </p>
         )}
-        <p className="mt-8 text-[11px] text-neutral-700">
-          <Link
-            href={site.author.url}
-            target="_blank"
-            rel="noreferrer"
-            className="hover:text-neutral-500"
-          >
-            {site.author.name}
-          </Link>
-        </p>
+        {/* Künye şablon hâlindeyken (kurulum öncesi) boş bir bağlantı
+            kalmasın: href="" geçerli bir adres değil ve satır anlamsız. */}
+        {site.author.name && (
+          <p className="mt-8 text-[11px] text-neutral-700">
+            {site.author.url ? (
+              <Link
+                href={site.author.url}
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-neutral-500"
+              >
+                {site.author.name}
+              </Link>
+            ) : (
+              site.author.name
+            )}
+          </p>
+        )}
       </div>
     </main>
   );

@@ -99,8 +99,17 @@ export type RadioState = {
   cycle: number;
 };
 
+/**
+ * Konum hesabı için gereken asgari bilgi.
+ *
+ * `Station`'ın tamamı gerekmiyor — ad, slogan, kaynak gibi alanlar zamanla
+ * ilgisiz. Daraltılmış tip sayesinde script'ler tam bir istasyon kurmadan
+ * hesap yaptırabiliyor; `Station` bu tipi zaten karşılıyor.
+ */
+export type Timeline = Pick<Station, "epochMs" | "tracks" | "totalDurationSec">;
+
 /** Verilen ana karşılık gelen yayın konumunu döndürür. */
-export function resolveRadioState(station: Station, nowMs: number): RadioState {
+export function resolveRadioState(station: Timeline, nowMs: number): RadioState {
   const totalMs = station.totalDurationSec * 1000;
   const sinceEpochMs = nowMs - station.epochMs;
 
@@ -138,6 +147,36 @@ export function resolveRadioState(station: Station, nowMs: number): RadioState {
     nextTrack: station.tracks[0],
     cycle,
   };
+}
+
+/**
+ * Liste değişirken yayının kesilmemesi için epoch'u yeniden hesaplar.
+ *
+ * Sezgiye aykırı ama kaçınılmaz: konum `(now - epoch) mod toplamSüre` ile
+ * bulunuyor, yani **toplam süre değişince epoch sabit kalsa bile herkes başka
+ * bir yere atlar**. Sapma her turda birikir; aylardır dönen bir yayında tek
+ * bir parça eklemek listeyi saatlerce kaydırabilir.
+ *
+ * Dolayısıyla sesin sabit kalması için epoch'un oynaması gerekiyor: şu an
+ * çalan parça yeni listede nereye düştüyse, epoch oraya göre geri sarılıyor.
+ * Admin panelindeki "buradan çal" da aynı aritmetiği kullanıyor.
+ *
+ * @returns Yeni epoch (ms) ya da konum korunamıyorsa `null` — liste boşaldıysa
+ *          veya çalan parça listeden çıkarıldıysa korunacak bir şey yoktur.
+ */
+export function rebaseEpoch(before: Timeline, after: Track[], nowMs: number): number | null {
+  if (before.tracks.length === 0 || after.length === 0) return null;
+  if (before.totalDurationSec <= 0) return null;
+
+  const state = resolveRadioState(before, nowMs);
+  const index = after.findIndex((track) => track.videoId === state.track.videoId);
+  if (index < 0) return null;
+
+  const untilTrack = after
+    .slice(0, index)
+    .reduce((sum, track) => sum + track.durationSec, 0);
+
+  return nowMs - (untilTrack + state.offsetSec) * 1000;
 }
 
 /** Yayın akışında bir parça: sırası ve "şimdi"ye olan zaman uzaklığı. */
@@ -222,3 +261,12 @@ export function formatClock(totalSeconds: number): string {
   const seconds = safe % 60;
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
+
+/**
+ * Kapağı olmayan parçalar için istasyon ikonu.
+ *
+ * Burada duruyor çünkü hem sunucu (istasyon kurulumu) hem panel (taslak liste)
+ * aynı yedeğe ihtiyaç duyuyor. Boş bir `src` `next/image`'i çalışma anında
+ * patlatıyor, o yüzden "kapak yok" hâli görünür bir değere bağlanmak zorunda.
+ */
+export const FALLBACK_COVER = "/icon-512.png";

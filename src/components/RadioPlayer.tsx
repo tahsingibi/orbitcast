@@ -1,27 +1,28 @@
 "use client";
 
-import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import CoverArt from "@/components/CoverArt";
+import PlayerArtwork from "@/components/player/PlayerArtwork";
+import PlayerControls from "@/components/player/PlayerControls";
+import PlayerFooter from "@/components/player/PlayerFooter";
+import PlayerProgress from "@/components/player/PlayerProgress";
+import StationHeader from "@/components/player/StationHeader";
+import TrackInfo from "@/components/player/TrackInfo";
+import UpNext from "@/components/player/UpNext";
 import InfoDialog from "@/components/InfoDialog";
 import QueueSheet from "@/components/QueueSheet";
-import MarqueeText from "@/components/MarqueeText";
-import ShareMenu from "@/components/ShareMenu";
-import SourceBadge from "@/components/SourceBadge";
 import { useListenerCount } from "@/hooks/useListenerCount";
+import { useMediaSession } from "@/hooks/useMediaSession";
 import { useServerClock } from "@/hooks/useServerClock";
 import {
-  formatClock,
   resolveRadioState,
   trackKind,
   type RadioState,
   type Station,
 } from "@/lib/radio";
-import { site } from "@/lib/site";
-import LanguageSwitch from "@/components/LanguageSwitch";
 import { useT } from "@/lib/i18n/context";
 import { PlaybackEngine } from "@/lib/playback-engine";
-import Link from "next/link";
 
 /** Yayın konumunun yeniden hesaplanma sıklığı. */
 const TICK_MS = 500;
@@ -285,167 +286,63 @@ export default function RadioPlayer({
     playerRef.current?.pause();
   }, []);
 
-  const togglePlay = isPlaying ? pause : play;
-  const displayVolume = muted ? 0 : volume;
-  const { track, nextTrack, offsetSec, index } = state;
-  const progress = Math.min(100, (offsetSec / track.durationSec) * 100);
+  // Ses artık kendi dosyalarımızdan gelebildiği için yayın arka planda da
+  // sürebilir; işletim sisteminin bunu bilmesi gerekiyor.
+  useMediaSession({
+    track: state.track,
+    stationName: station.name,
+    isPlaying,
+    onPlay: play,
+    onPause: pause,
+  });
 
+  const togglePlay = isPlaying ? pause : play;
+  const { track, nextTrack, offsetSec, index } = state;
 
   return (
     <main className="relative flex h-full items-center justify-center overflow-hidden bg-neutral-950 px-5 py-4 text-neutral-100 [@media(min-height:720px)]:py-8">
       {/* Kapaktan türeyen atmosfer */}
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <Image
-          key={track.videoId}
-          src={track.thumbnail}
-          alt=""
+        <CoverArt
+          track={track}
           fill
+          plain
           priority
-          sizes="100vw"
           className="scale-125 object-cover opacity-40 blur-3xl saturate-150"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/40 via-neutral-950/75 to-neutral-950" />
       </div>
 
       <section className="flex h-full w-full max-w-sm flex-col justify-center gap-4 [@media(min-height:800px)]:gap-5">
-        <header className="flex shrink-0 items-center justify-between">
-          <div>
-            <h1 className="text-sm font-semibold tracking-[0.2em] text-neutral-200">
-              {station.name}
-            </h1>
-            <p className="mt-1 text-xs text-neutral-500">{station.tagline}</p>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            {listeners !== null && listeners > 0 && (
-              <span
-                title={t.player.listenersHint}
-                className="flex items-center gap-1.5 rounded-full border border-white/10 px-2.5 py-1 text-[10px] font-semibold tracking-[0.15em] text-neutral-400"
-              >
-                <ListenersIcon />
-                {listeners}
-              </span>
-            )}
-            <SourceBadge source={station.source} active={isPlaying} />
-          </div>
-        </header>
+        <StationHeader station={station} listeners={listeners} isPlaying={isPlaying} />
 
-        <div className="relative min-h-0 w-full max-h-96 flex-1 overflow-hidden rounded-2xl bg-neutral-900 shadow-2xl shadow-black/60 ring-1 ring-white/10">
-          {/*
-            Ses kaynağı. Ekran dışına atmak yerine kapağın *altına* konuyor:
-            mobil tarayıcılar görünmeyen veya ekran dışındaki medyayı
-            oynatmayı reddedebiliyor. Opak kapak görseli üstünü tamamen örter.
-          */}
-          <div ref={mountRef} aria-hidden className="yt-slot pointer-events-none absolute inset-0" />
-          {/*
-            Iframe'i örten opak zemin.
+        <PlayerArtwork
+          track={track}
+          mountRef={mountRef}
+          adBreak={adBreak}
+          isBuffering={isBuffering}
+        />
 
-            Kapak tek başına yetmiyor: `key` her parça değişiminde <img>'i
-            yeniden kurduğu için yeni görsel inene kadar ortada saydam bir
-            boşluk kalıyor ve iframe görünüyor. Kapak 404 verirse boşluk
-            kalıcı oluyor. Zemin kapakla aynı katmanda ama DOM'da önce, yani
-            kapak yüklendiğinde onun altında kalıyor.
+        <TrackInfo station={station} track={track} />
 
-            Örtmek oynatmayı engellemiyor: tarayıcılar otomatik oynatma
-            kararını elemanın hesaplanmış stiline ve boyutuna bakarak veriyor,
-            üstünün kapalı olup olmadığına değil.
-          */}
-          <div aria-hidden className="pointer-events-none absolute inset-0 z-10 bg-neutral-900" />
-          <Image
-            key={track.videoId}
-            src={track.thumbnail}
-            alt={`${track.artist} — ${track.title}`}
-            fill
-            priority
-            sizes="(max-width: 400px) 100vw, 384px"
-            className="z-10 object-cover"
-          />
-          {(adBreak || isBuffering) && (
-            <div className="absolute inset-0 z-20 flex items-end justify-start bg-neutral-950/30 p-4">
-              <span className="rounded-full bg-neutral-950/70 px-3 py-1 text-[11px] text-neutral-300 backdrop-blur">
-                {adBreak ? t.player.adBreak : t.player.buffering}
-              </span>
-            </div>
-          )}
-        </div>
+        <PlayerProgress
+          offsetSec={offsetSec}
+          durationSec={track.durationSec}
+          index={index}
+        />
 
-        <div className="flex shrink-0 items-end gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium tracking-[0.18em] text-neutral-500">
-              {t.player.nowPlaying}
-            </p>
-            {/*
-              Uzun adlar üç noktanın arkasında kayboluyordu; sığmıyorsa metin
-              kendi alanı içinde gidip geliyor. Anahtar parçaya bağlı: yeni
-              parçada animasyon baştan kurulsun.
-            */}
-            <h2 className="mt-1.5 text-xl font-semibold tracking-tight [@media(min-height:720px)]:text-2xl">
-              <MarqueeText key={track.videoId} text={track.title} />
-            </h2>
-            <p
-              className="mt-1 truncate text-sm text-neutral-400"
-              title={track.artist}
-            >
-              {track.artist}
-            </p>
-          </div>
-
-          {/* Paylaşılan şey bu parça; eylem oynatma kontrollerinin değil,
-              parça bilgisinin yanına ait. */}
-          <ShareMenu station={station} track={track} />
-        </div>
-
-        {/* Yalnızca göstergedir: tıklanamaz, sürüklenemez. */}
-        <div className="shrink-0">
-          <div className="h-1 overflow-hidden rounded-full bg-white/10">
-            <div
-              key={index}
-              className="h-full rounded-full bg-neutral-100 transition-[width] duration-500 ease-linear"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <div className="mt-2 flex justify-between font-mono text-[11px] tabular-nums text-neutral-500">
-            <span>{formatClock(offsetSec)}</span>
-            <span>{formatClock(track.durationSec)}</span>
-          </div>
-        </div>
-
-        <div className="flex shrink-0 items-center gap-4">
-          <button
-            type="button"
-            onClick={togglePlay}
-            disabled={!playerReady}
-            aria-label={isPlaying ? t.player.pause : t.player.play}
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-950 transition hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 [@media(min-height:720px)]:h-14 [@media(min-height:720px)]:w-14"
-          >
-            {isPlaying ? <PauseIcon /> : <PlayIcon />}
-          </button>
-
-          <div className="flex flex-1 items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setMuted((m) => !m)}
-              aria-label={muted ? t.player.unmute : t.player.mute}
-              className="text-neutral-400 transition hover:text-neutral-100"
-            >
-              {displayVolume === 0 ? <MutedIcon /> : <SpeakerIcon />}
-            </button>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={displayVolume}
-              onChange={(e) => {
-                setVolume(Number(e.target.value));
-                setMuted(false);
-              }}
-              aria-label={t.player.volume}
-              className="volume-slider h-1 w-full cursor-pointer appearance-none rounded-full"
-              style={{
-                background: `linear-gradient(to right, #f5f5f5 ${displayVolume}%, rgba(255,255,255,0.15) ${displayVolume}%)`,
-              }}
-            />
-          </div>
-        </div>
+        <PlayerControls
+          isPlaying={isPlaying}
+          playerReady={playerReady}
+          onTogglePlay={togglePlay}
+          volume={volume}
+          muted={muted}
+          onVolumeChange={(value) => {
+            setVolume(value);
+            setMuted(false);
+          }}
+          onToggleMute={() => setMuted((m) => !m)}
+        />
 
         {errorKey && (
           <p className="shrink-0 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
@@ -453,65 +350,12 @@ export default function RadioPlayer({
           </p>
         )}
 
-        <button
-          type="button"
-          onClick={() => setQueueOpen(true)}
-          className="group hidden w-full shrink-0 items-center gap-3 border-t border-white/5 pt-4 text-left [@media(min-height:620px)]:flex"
-        >
-          <Image
-            src={nextTrack.thumbnail}
-            alt=""
-            width={44}
-            height={44}
-            className="h-11 w-11 rounded-lg object-cover opacity-70 transition group-hover:opacity-100"
-          />
-          <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-medium tracking-[0.18em] text-neutral-600">
-              {t.player.upNext}
-            </p>
-            <p className="mt-0.5 truncate text-sm text-neutral-300">
-              {nextTrack.title}
-            </p>
-            <p className="truncate text-xs text-neutral-500">
-              {nextTrack.artist}
-            </p>
-          </div>
-          <span className="shrink-0 text-[11px] text-neutral-600 transition group-hover:text-neutral-300">
-            {t.player.openQueue}
-          </span>
-        </button>
+        <UpNext track={nextTrack} onOpenQueue={() => setQueueOpen(true)} />
 
-        <footer className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-1 text-[11px] text-neutral-600">
-          {/* Künye artık "Hakkında" penceresinde; burada yalnızca dört giriş
-              kalıyor ki satır okunur olsun. */}
-          <p>
-            <LanguageSwitch />
-          </p>
-          <span className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setQueueOpen(true)}
-              className="text-neutral-500 underline decoration-white/15 underline-offset-4 transition hover:text-neutral-300 hover:decoration-white/40"
-            >
-              {t.player.queueLink}
-            </button>
-            <button
-              type="button"
-              onClick={() => setInfoOpen(true)}
-              className="text-neutral-500 underline decoration-white/15 underline-offset-4 transition hover:text-neutral-300 hover:decoration-white/40"
-            >
-              {t.player.infoLink}
-            </button>
-            <Link
-              href={site.repoUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="text-neutral-500 underline decoration-white/15 underline-offset-4 transition hover:text-neutral-300 hover:decoration-white/40"
-            >
-              {t.player.repoLink}
-            </Link>
-          </span>
-        </footer>
+        <PlayerFooter
+          onOpenQueue={() => setQueueOpen(true)}
+          onOpenInfo={() => setInfoOpen(true)}
+        />
       </section>
 
       <QueueSheet
@@ -525,67 +369,8 @@ export default function RadioPlayer({
         open={infoOpen}
         onClose={closeInfo}
         stationName={station.name}
+        selfHosted={station.tracks.some((track) => trackKind(track) === "audio")}
       />
     </main>
-  );
-}
-
-/** Dinleyici rozetinin ikonu: iki kişi silueti. */
-function ListenersIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className="h-3 w-3" aria-hidden>
-      <path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-3.3 0-6 1.8-6 4v2h12v-2c0-2.2-2.7-4-6-4Z" />
-      <path d="M17.5 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm.5 1.5c-.7 0-1.4.1-2 .3 1.3.9 2 2.1 2 3.4V19h4v-1.6c0-2-2.4-3.4-4-3.9Z" opacity=".6" />
-    </svg>
-  );
-}
-
-
-function PlayIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className="ml-0.5 h-6 w-6">
-      <path d="M8 5.14v13.72a1 1 0 0 0 1.54.84l10.29-6.86a1 1 0 0 0 0-1.68L9.54 4.3A1 1 0 0 0 8 5.14Z" />
-    </svg>
-  );
-}
-
-function PauseIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
-      <path d="M7 4h3.5v16H7zM13.5 4H17v16h-3.5z" />
-    </svg>
-  );
-}
-
-function SpeakerIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.8}
-      className="h-5 w-5"
-    >
-      <path d="M11 5 6.5 9H3v6h3.5L11 19V5Z" strokeLinejoin="round" />
-      <path
-        d="M15.5 9.5a3.5 3.5 0 0 1 0 5M18 7a7 7 0 0 1 0 10"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function MutedIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.8}
-      className="h-5 w-5"
-    >
-      <path d="M11 5 6.5 9H3v6h3.5L11 19V5Z" strokeLinejoin="round" />
-      <path d="m16 10 4 4m0-4-4 4" strokeLinecap="round" />
-    </svg>
   );
 }

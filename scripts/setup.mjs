@@ -19,10 +19,23 @@ import { createInterface } from "node:readline/promises";
 import path from "node:path";
 import { stdin, stdout } from "node:process";
 
+import { rebaseEpoch } from "../src/lib/radio.ts";
 import { extractPlaylistId, resolvePlaylistTracks } from "../src/lib/youtube-metadata.ts";
 import { importAudioFolder } from "./lib/audio-import.mjs";
 import { applyEnv, cleanPastedValue } from "./lib/env.mjs";
-import { orderDoc, readFileDoc, ROOT, writeFileDoc } from "./lib/store.mjs";
+import { getField, readSite, setField, writeSite } from "./lib/site-file.mjs";
+import { syncCovers } from "../src/lib/cover.ts";
+import { matchTracks, mergeTrack } from "../src/lib/match.ts";
+import { resolveStorage } from "../src/lib/storage/index.ts";
+import {
+  orderDoc,
+  readDoc,
+  readFileDoc,
+  ROOT,
+  storeLabel,
+  writeDoc,
+  writeFileDoc,
+} from "./lib/store.mjs";
 
 const ENV_PATH = path.join(ROOT, ".env.local");
 
@@ -184,36 +197,230 @@ async function setupRedis(ask, env) {
       log(c.yellow("  Kaydedildi ama bağlantı doğrulanmadı."));
     }
 
-    env.RADIO_SOURCE = "redis";
-    env.UPSTASH_REDIS_REST_URL = url;
-    env.UPSTASH_REDIS_REST_TOKEN = token;
+    // `.env.local` kurulumun sonunda yazılıyor, ama listeyi bu çalıştırmada
+    // Redis'e yazacaksak store.mjs'in bilgileri şimdi görmesi gerekiyor.
+    const values = {
+      RADIO_SOURCE: "redis",
+      UPSTASH_REDIS_REST_URL: url,
+      UPSTASH_REDIS_REST_TOKEN: token,
+    };
+    Object.assign(env, values);
+    Object.assign(process.env, values);
     return null;
   }
 }
 
 /** Yerel ses dosyaları: repoya kopyalanır, sunucudan servis edilir. */
-async function setupLocalFiles(ask, env, doc) {
+/**
+ * Ses dosyaları nerede saklanacak?
+ *
+ * Soru içe aktarmadan *önce* sorulmak zorunda: `importAudioFolder` dosyaları
+ * seçilen depoya yazıyor. Değerler `.env.local`'a ancak kurulumun sonunda
+ * yazıldığı için `process.env`'e de hemen işleniyor — yoksa ayar bu
+ * çalıştırmada geçerli olmaz, kullanıcı da sebebini anlamazdı.
+ */
+async function setupStorage(ask, env) {
+  const apply = (values) => {
+    Object.assign(env, values);
+    Object.assign(process.env, values);
+  };
+
   log();
-  log(c.dim("  Ses dosyalarınızın klasörünü verin. Dosyalar public/audio altına"));
-  log(c.dim("  kopyalanacak ve repoyla birlikte deploy edilecek."));
+  const choice = await askChoice(ask, "Ses dosyaları nerede saklansın?", [
+    "Repo içinde (public/audio) — ek kurulum yok, dosyalar git'e girer",
+    "Cloudflare R2 — repo temiz kalır, dinleyici trafiği ücretsiz",
+  ]);
+
+  if (choice === 1) {
+    apply({ AUDIO_STORAGE: "local" });
+    return;
+  }
+
+  log();
+  log(c.dim("  Cloudflare panelinden: R2 > bucket > Settings bölümünde Account ID,"));
+  log(c.dim("  R2 > Manage API tokens ile Object Read & Write yetkili bir anahtar."));
+  log(c.dim("  Public adres, bucket'a bağladığınız custom domain olmalı —"));
+  log(c.dim("  r2.dev adresi üretim için uygun değil."));
+  log();
+
+  /**
+   * Mevcut değeri varsayılan olarak sunar; boş cevap onu korur.
+   *
+   * Kurulumun tekrar çalıştırılabilir olması buna bağlı: beş anahtarı her
+   * seferinde yeniden yapıştırmak gerekseydi "tekrar çalıştırmak güvenlidir"
+   * pratikte doğru olmazdı. Gizli değer maskeleniyor — terminal geçmişinde
+   * ve omuz üstünde durmasın.
+   */
+  const askKept = async (label, name, { secret = false } = {}) => {
+    const current = (process.env[name] ?? "").trim();
+    const shown = secret ? `${current.slice(0, 4)}…${current.slice(-4)}` : current;
+    const suffix = current ? ` ${c.dim(`[${shown}]`)}` : "";
+    return cleanPastedValue(await ask(`  ${label}${suffix}: `)) || current;
+  };
+
+  const values = {
+    AUDIO_STORAGE: "r2",
+    R2_ACCOUNT_ID: await askKept("Account ID", "R2_ACCOUNT_ID"),
+    R2_BUCKET: await askKept("Bucket adı", "R2_BUCKET"),
+    R2_ACCESS_KEY_ID: await askKept("Access Key ID", "R2_ACCESS_KEY_ID"),
+    R2_SECRET_ACCESS_KEY: await askKept("Secret Access Key", "R2_SECRET_ACCESS_KEY", {
+      secret: true,
+    }),
+    R2_PUBLIC_URL: await askKept("Public adres (ör. https://cdn.siteniz.com)", "R2_PUBLIC_URL"),
+  };
+
+  const missing = Object.entries(values)
+    .filter(([, value]) => !value)
+    .map(([key]) => key);
+
+  if (missing.length > 0) {
+    logError(`  ✗ Eksik: ${missing.join(", ")}`);
+    log(c.dim("  Yerel depoyla devam ediliyor; sonra .env.local'dan tamamlayabilirsiniz."));
+    apply({ AUDIO_STORAGE: "local" });
+    return;
+  }
+
+  apply(values);
+  log();
+  log(c.yellow("  ! Bucket public olduğu için hotlink koruması WAF tarafında yapılır."));
+  log(c.dim("    README > 'Hotlink koruması' başlığındaki tek kuralı eklemeyi unutmayın."));
+}
+
+/**
+ * Listenin nerede tutulacağı.
+ *
+ * Ses dosyalarının nerede durduğundan bağımsız bir soru: R2'den ses servis
+ * ederken listeyi Redis'te tutmak en yaygın kurulum — dosyalar repoyu
+ * şişirmez, liste de deploy almadan panelden yönetilir.
+ */
+async function askListLocation(ask, env) {
+  log();
+  const choice = await askChoice(ask, "Parça listesi nerede tutulsun?", [
+    "Upstash Redis — panelden yönetirim, şarkı eklemek için deploy gerekmesin",
+    "data/playlist.json — liste repoda dursun",
+  ]);
+
+  if (choice === 2) {
+    env.RADIO_SOURCE = "file";
+    process.env.RADIO_SOURCE = "file";
+    return;
+  }
+
+  await setupRedis(ask, env);
+}
+
+/**
+ * Yerel dosyaların meta bilgisini bir YouTube listesinden zenginleştirir.
+ *
+ * Dosya adları başlık ve sanatçıyı güvenilir taşımıyor, kapak ise hiç yok.
+ * Aynı şarkıların YouTube kayıtları varsa ses yerelden çalmaya devam ederken
+ * kimlik oradan alınabiliyor.
+ *
+ * YouTube parçaları listeye *eklenmiyor* — yalnızca meta kaynağı olarak
+ * kullanılıyorlar. Eklenselerdi her şarkı listede iki kez çalardı.
+ */
+async function enrichFromYouTube(ask, tracks) {
+  log();
+  log(c.dim("  İsterseniz bu şarkıların YouTube playlist adresini verin: başlık,"));
+  log(c.dim("  sanatçı ve kapaklar oradan eşleştirilir. Ses yine kendi"));
+  log(c.dim("  dosyalarınızdan çalar, liste uzamaz."));
+  log();
+
+  const link = (await ask("  Playlist adresi (boş: atla): ")).trim();
+  if (!link) return tracks;
+
+  if (!extractPlaylistId(link)) {
+    logError("  ✗ Geçerli bir YouTube playlist adresi değil; atlanıyor.");
+    return tracks;
+  }
+
+  let remote;
+  try {
+    log(c.dim("  Liste okunuyor…"));
+    remote = await resolvePlaylistTracks(link);
+  } catch (err) {
+    logError(`  ✗ Okunamadı (${err.message}); meta dosya adlarından kalacak.`);
+    return tracks;
+  }
+
+  const result = matchTracks(tracks, remote);
+  const merged = new Map(
+    result.confident.map((m) => [m.local, mergeTrack(m.local, m.remote)]),
+  );
+
+  log(c.green(`  ✓ ${result.confident.length} parça eşleşti (kapak ve başlık geldi)`));
+  if (result.uncertain.length + result.unmatchedLocal.length > 0) {
+    const rest = result.uncertain.length + result.unmatchedLocal.length;
+    log(c.dim(`  − ${rest} parça eşleşmedi; adı dosyadan kalır, panelden düzeltilebilir.`));
+  }
+
+  const enriched = tracks.map((track) => merged.get(track) ?? track);
+
+  // Eşleşen kapaklar YouTube'un adresini *göstermekle* kalmasın: `radio:match`
+  // gibi burada da indirilip depoya alınıyor. Aksi hâlde sesi kendi deponda
+  // olan bir yayın kapaklar için YouTube'a bağımlı kalırdı.
+  if (merged.size > 0) {
+    log(c.dim("  Kapaklar depoya taşınıyor…"));
+    const synced = await syncCovers({
+      tracks: enriched,
+      storage: resolveStorage(),
+      onProgress: (done, total) => {
+        if (stdout.isTTY) stdout.write(`\r  ${c.dim(`kapak ${done}/${total}`)}   `);
+      },
+    });
+    if (stdout.isTTY) stdout.write("\r".padEnd(40) + "\r");
+    log(c.green(`  ✓ ${synced.ingested} kapak depoya alındı`));
+    if (synced.failed.length > 0) {
+      log(c.dim(`  − ${synced.failed.length} kapak indirilemedi; yedek görselle görünür.`));
+    }
+    return synced.tracks;
+  }
+
+  return enriched;
+}
+
+async function setupLocalFiles(ask, env, doc) {
+  await setupStorage(ask, env);
+  await askListLocation(ask, env);
+
+  log();
+  log(c.dim("  Ses dosyalarınızın klasörünü verin."));
   log(c.yellow("  Telifli müziği kendi sunucunuzdan yayınlamanın sorumluluğu size ait."));
   log();
 
   const folder = (await ask("  Klasör: ")).trim();
   if (!folder) return null;
 
-  const existing = new Set(doc.tracks.map((t) => t.videoId));
+  // Kimlik dosya adından türediği için aynı klasör ikinci kez tarandığında
+  // parçalar "zaten listede" diye atlanıyor. Bu, listeyi büyütürken doğru
+  // davranış; ama depoyu boşaltıp sıfırdan kuranı sessizce eli boş bırakıyordu
+  // — hiçbir dosya yüklenmiyor, yayın kırık kalıyordu. O yüzden liste doluysa
+  // niyeti soruyoruz. `radio:add` playlist içe aktarırken de aynısını yapıyor.
+  let replace = false;
+  if (doc.tracks.length > 0) {
+    log();
+    log(c.dim(`  Listede zaten ${doc.tracks.length} parça var.`));
+    replace =
+      (await askChoice(ask, "Ne yapalım?", [
+        "Bu klasördekileri listeye ekle",
+        "Listeyi bu klasörle değiştir (sıfırdan kur)",
+      ])) === 2;
+  }
+
+  const existing = replace ? new Set() : new Set(doc.tracks.map((t) => t.videoId));
   try {
     const result = await importAudioFolder(folder, existing, (done, total) => {
       if (stdout.isTTY) stdout.write(`\r  ${c.dim(`okunuyor ${done}/${total}`)}   `);
     });
     if (stdout.isTTY) stdout.write("\r".padEnd(40) + "\r");
 
-    log(c.green(`  ✓ ${result.tracks.length} parça hazır · ${(result.bytes / 1024 / 1024).toFixed(1)} MB`));
+    const size = (result.bytes / 1024 / 1024).toFixed(1);
+    const where = result.storage === "r2" ? "R2" : "public/audio";
+    log(c.green(`  ✓ ${result.tracks.length} parça hazır · ${size} MB · ${where}`));
     for (const item of result.skipped) log(c.yellow(`  − ${item.name} (${item.reason})`));
 
-    env.RADIO_SOURCE = "file";
-    return { tracks: result.tracks, replace: false };
+    const tracks = await enrichFromYouTube(ask, result.tracks);
+    return { tracks, replace };
   } catch (err) {
     if (stdout.isTTY) stdout.write("\r".padEnd(40) + "\r");
     logError(`  ✗ ${err.message}`);
@@ -253,7 +460,11 @@ async function main() {
     log(c.bold("  Orbitcast · kurulum"));
     log(c.dim("  Boş bırakılan her soruda köşeli parantezdeki değer korunur."));
 
-    const doc = await readFileDoc();
+    // Yapılandırılmış depodan okunuyor: kurulum ikinci kez çalıştırıldığında
+    // Redis'teki güncel listeyi değil, repodaki bayat dosyayı temel almak
+    // panelde yapılan tüm düzenlemeleri geri alırdı. Depoya ulaşılamazsa
+    // dosyaya düşülüyor — ilk kurulumda zaten Redis yapılandırılmamış olur.
+    const doc = await readDoc().catch(() => readFileDoc());
     const envText = await readEnvFile();
     const env = {};
 
@@ -285,6 +496,9 @@ async function main() {
             ? await setupFile(ask, env)
             : await setupLocalFiles(ask, env, doc);
 
+    // Liste değişmeden önceki hâli: 4. bölümde yayın konumunu koruyabilmek için
+    // eski sıralama ve süreler gerekiyor.
+    const previousTracks = doc.tracks;
     if (imported) {
       doc.tracks = imported.replace ? imported.tracks : [...doc.tracks, ...imported.tracks];
     }
@@ -307,26 +521,87 @@ async function main() {
     const apiKey = (await ask("  YOUTUBE_API_KEY (boş: atla): ")).trim();
     if (apiKey) env.YOUTUBE_API_KEY = apiKey;
 
+    // --- Kaldırma talebi adresi
+    //
+    // Ortam değişkeni değil, `src/lib/site.ts` içinde: künye yapılı veri
+    // tutuyor ve orada duruyor. Burada sorulmasının sebebi şablonda bilerek
+    // boş olması — doldurulmazsa hak sahipleri "Hakkında" penceresinde
+    // yazacak bir adres bulamıyor.
+    log();
+    log(c.dim("  Telif sahipleri bir parçanın kaldırılmasını istediğinde bu adrese"));
+    log(c.dim("  yazacak; \"Hakkında\" penceresinde görünür. Boş bırakırsanız o"));
+    log(c.dim("  bölümde adres hiç gösterilmez."));
+
+    try {
+      const siteText = await readSite();
+      const current = getField(siteText, "contactEmail");
+      const answer = (
+        await ask(`  Kaldırma talebi e-postası${current ? ` ${c.dim(`[${current}]`)}` : ""}: `)
+      ).trim();
+
+      const email = answer || current;
+      if (email && email !== current) {
+        await writeSite(siteText, setField(siteText, "contactEmail", email));
+        log(c.dim("  · src/lib/site.ts güncellendi"));
+      }
+    } catch (err) {
+      logError(`  ✗ Künye güncellenemedi (${err.message}); site.ts'i elle düzenleyin.`);
+    }
+
     // --- Yayın başlangıcı
     log();
     log(c.bold("  4 · Yayın başlangıcı"));
     log(c.dim("  epoch, akışın kavramsal sıfır noktası. Değiştirirseniz herkesin"));
     log(c.dim("  duyduğu şarkı kayar; bir kez ayarlayıp bir daha dokunmayın."));
-    const resetEpoch = await askChoice(
-      ask,
-      `Şu anki değer: ${doc.epoch}`,
-      ["Olduğu gibi bırak", "Şu ana ayarla (yayın ilk parçadan başlar)"],
-    );
+    // Liste değiştiyse epoch'a dokunmamak yayını *kaydırır*: konum
+    // `(now - epoch) mod toplamSüre` ile bulunduğu için toplam süre değişince
+    // modulo başka yere düşer. Konumu korumanın yolu epoch'u oynatmak.
+    const changed = previousTracks.length > 0 && doc.tracks !== previousTracks;
+    const rebased = changed
+      ? rebaseEpoch(
+          {
+            epochMs: Date.parse(doc.epoch),
+            tracks: previousTracks,
+            totalDurationSec: previousTracks.reduce((sum, t) => sum + t.durationSec, 0),
+          },
+          doc.tracks,
+          Date.now(),
+        )
+      : null;
+
+    const options = ["Olduğu gibi bırak", "Şu ana ayarla (yayın ilk parçadan başlar)"];
+    if (rebased !== null) {
+      log(c.dim("  Liste değişti: epoch'a dokunmamak dinleyicileri başka bir parçaya"));
+      log(c.dim("  atlatır. Üçüncü seçenek onları aynı yerde tutar."));
+      options.push("Yayın konumunu koru (epoch yeniden hesaplanır)");
+    }
+
+    const resetEpoch = await askChoice(ask, `Şu anki değer: ${doc.epoch}`, options);
     if (resetEpoch === 2) doc.epoch = new Date().toISOString();
+    if (resetEpoch === 3 && rebased !== null) doc.epoch = new Date(rebased).toISOString();
 
     // --- Yaz
-    await writeFileDoc(orderDoc(doc));
+    // Seçilen depoya yazılıyor. Redis seçildiyse `writeDoc` listeyi oraya
+    // koyar ve data/playlist.json'ı yedek olarak günceller; böylece kurulum
+    // biter bitmez panelden yönetilebilir hâle geliyor.
+    //
+    // Redis'e ulaşılamazsa dosyaya düşülüyor: bu noktada ses dosyaları çoktan
+    // yüklenmiş oluyor ve listeyi kaybetmek bütün kurulumu boşa çıkarırdı.
+    try {
+      await writeDoc(doc);
+    } catch (err) {
+      logError(`  ✗ Depoya yazılamadı (${err.message}).`);
+      log(c.yellow("  Liste data/playlist.json'a kaydedildi; bağlantıyı düzeltip"));
+      log(c.yellow("  `npm run radio:setup` komutunu tekrar çalıştırabilirsiniz."));
+      await writeFileDoc(orderDoc(doc));
+    }
+
     await writeFile(ENV_PATH, applyEnv(envText, env), "utf8");
 
     log();
     log(c.green("  Kurulum tamam."));
     log(c.dim(`  · .env.local güncellendi (${Object.keys(env).length} değişken)`));
-    log(c.dim(`  · data/playlist.json · ${doc.tracks.length} parça`));
+    log(c.dim(`  · ${storeLabel()} · ${doc.tracks.length} parça`));
     log();
     log("  Şimdi:");
     log(c.cyan("    npm run dev"));

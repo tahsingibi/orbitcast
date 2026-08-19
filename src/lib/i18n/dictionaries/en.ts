@@ -24,6 +24,8 @@ export const en: Dictionary = {
     queueLink: "Queue",
     infoLink: "About",
     repoLink: "GitHub",
+    poweredBy: "OrbitCast",
+    poweredByTitle: "Powered by OrbitCast — source on GitHub",
   },
 
   source: {
@@ -65,13 +67,22 @@ export const en: Dictionary = {
     copyrightEmphasis: "hosted, downloaded, copied or re-broadcast",
     copyrightRest:
       ". Content plays directly through YouTube's own player and infrastructure, exactly as the rights holders published it on YouTube. YouTube's Terms of Service apply during playback.",
+    howBodySelfHosted:
+      "{station} is a web player broadcasting from the station's own audio " +
+      "library. Every listener lands on the same second of the same track " +
+      "through a shared time calculation.",
+    copyrightSelfHosted:
+      "The audio in this broadcast is hosted on the station's own " +
+      "infrastructure. It is offered for listening only; no download links are " +
+      "provided and no revenue is earned from the broadcast.",
     copyrightOwners:
       "All works belong to their respective artists, producers and rights holders. This site claims no ownership over the content and earns no revenue from the broadcast.",
     takedownHeading: "TAKEDOWN REQUESTS",
     takedownBody:
-      "If you are the rights holder of a work and want it removed from the playlist, email the address below with the track name and its YouTube link. Once verified, the track is removed",
+      "If you are the rights holder of a work and want it removed from the playlist, send an email with the track name and its link. Once verified, the track is removed",
     takedownEmphasis: "without delay",
     takedownRest: ".",
+    takedownContactLead: "Write to:",
     takedownSubject: "{station} — Takedown request",
     creditsHeading: "CREDITS",
     creditsBody: "Built by {author}.",
@@ -163,10 +174,38 @@ export const en: Dictionary = {
     add: "Add",
     adding: "Resolving…",
     duplicate: "This track is already in the playlist.",
+
+    linkHeading: "Add by YouTube link",
+    linkHint:
+      "This track's audio comes from YouTube: when its turn comes the embedded " +
+      "player opens and background playback stops working. If you broadcast " +
+      "your own files, use the upload above.",
+    uploadHeading: "Add from file",
+    uploadHint:
+      "Pick an MP3: duration, tags and embedded artwork are read from the file. " +
+      "Select a single file to override them below.",
+    uploadChoose: "Choose audio file",
+    uploadCover: "Cover",
+    uploadCoverUrl: "Cover URL",
+    uploadCoverUrlPlaceholder: "YouTube link or image URL",
+    uploadCoverUrlHint:
+      "Used when the file has no embedded artwork. Give a YouTube link and the " +
+      "video's thumbnail is downloaded into your own store — no external link.",
+    uploadTitleField: "Title",
+    uploadArtistField: "Artist",
+    uploadOptional: "optional",
+    uploading: "Uploading {done}/{total}…",
+    uploadDone: "Added {count} track(s) · {where}",
+    unknownArtist: "Unknown artist",
     notEmbeddable: "Embedding is disabled — it will play silently.",
 
     emptyList: "The playlist is empty. Add a YouTube link above.",
     dragHint: "Drag to reorder",
+    shuffle: "Shuffle",
+    shuffleHint:
+      "Shuffles the playlist and keeps the same artist from playing back to " +
+      "back. Nothing goes on air until you save.",
+    shuffleDone: "Shuffled {count} tracks · same artist adjacent: {runs}",
     playFromHere: "Start the broadcast here",
     moveUp: "Move up",
     moveDown: "Move down",
@@ -195,6 +234,12 @@ export const en: Dictionary = {
     readOnlyWhileBackup:
       "Editing is disabled while the backup playlist is on air. Switch back to live first.",
     trackFieldMissing: "#{index}: videoId or duration is missing.",
+    uploadNoFile: "No file selected.",
+    uploadBadType: "Unsupported file type.",
+    uploadTooLarge: "File is too large (50 MB max).",
+    uploadNoDuration:
+      "Could not read the track duration. Try an MP3 — other formats rely on the browser for duration.",
+    uploadFailed: "Upload to storage failed.",
 
     INVALID_URL: "Not a valid YouTube link or video id.",
     VIDEO_NOT_FOUND: "Video not found (it may be deleted or private).",

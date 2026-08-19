@@ -3,7 +3,7 @@ import path from "node:path";
 import { describe, it } from "node:test";
 
 import { applyEnv, cleanPastedValue } from "../scripts/lib/env.mjs";
-import { readAudioFile } from "../scripts/lib/mp3.mjs";
+import { readAudioFile } from "../src/lib/mp3.mjs";
 import { slugify } from "../scripts/lib/audio-import.mjs";
 import { broadcastSource, orderDoc } from "../scripts/lib/store.mjs";
 

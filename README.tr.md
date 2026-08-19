@@ -22,19 +22,25 @@ gösteren rozete kadar.
   <img src="docs/queue.png" alt="Yayın akışı" width="380">
 </p>
 
-**Neden bu mimari?** Ses dosyaları indirilmez, sunucuda tutulmaz, yeniden
-yayınlanmaz. Oynatma resmî YouTube IFrame Player API ile, YouTube'un kendi
-altyapısı üzerinden yapılır. Bunun iki büyük sonucu var: telif açısından
-temizsin ve **bant genişliği maliyetin sıfır** — 10 dinleyici de 10.000
-dinleyici de senin sunucundan tek bayt ses indirmez.
+**Neden bu mimari?** Uygulama sunucusu hiçbir koşulda ses taşımıyor: yayın
+konumu saf matematikle hesaplanıyor, ses ise ya YouTube'un kendi oynatıcısından
+ya da senin nesne deponden (Cloudflare R2) doğrudan dinleyiciye gidiyor. İki
+sonucu var — 10 dinleyici de 10.000 dinleyici de sunucundan tek bayt ses
+indirmiyor ve **bant genişliği maliyetin sıfır** kalıyor.
+
+Kendi kayıtlarını mı yayınlayacaksın yoksa YouTube'dan mı — bu seçim arka
+plandaki davranışı da belirliyor. Farkları [Hangi radyoyu
+kuruyorsun?](#hangi-radyoyu-kuruyorsun) bölümünde tablo hâlinde.
 
 ---
 
 ## İçindekiler
 
+- [Hangi radyoyu kuruyorsun?](#hangi-radyoyu-kuruyorsun)
 - [Nasıl çalışıyor?](#nasıl-çalışıyor)
 - [Hızlı başlangıç](#hızlı-başlangıç)
 - [Playlist nerede duruyor?](#playlist-nerede-duruyor)
+- [Ses dosyaları nerede duruyor?](#ses-dosyaları-nerede-duruyor)
 - [Kendi radyonu kur](#kendi-radyonu-kur)
 - [Diller](#diller)
 - [Ortam değişkenleri](#ortam-değişkenleri)
@@ -47,6 +53,49 @@ dinleyici de senin sunucundan tek bayt ses indirmez.
 - [Telif](#telif)
 - [Lisans](#lisans)
 - [Künye](#künye)
+
+---
+
+## Hangi radyoyu kuruyorsun?
+
+Üç kurulum var. `npm run radio:setup` bunu ilk soruda seçtiriyor; sonradan
+değiştirmek de mümkün ama **önce buradan karar vermek** en çok zaman kazandıran
+adım.
+
+| | **YouTube radyo** | **Yerel radyo · repo** | **Yerel radyo · R2** |
+| --- | --- | --- | --- |
+| Ses nereden gelir | YouTube CDN | repodaki `public/audio/` | Cloudflare R2 |
+| Sende ses dosyası | gerekmez | gerekir | gerekir |
+| Bant genişliği faturası | **yok** | deploy platformun | **yok** (R2 egress ücretsiz) |
+| **Arka planda çalma** | **çalışmaz** | çalışır | çalışır |
+| Kilit ekranı kontrolleri | yok | var | var |
+| Kütüphane sınırı | — | repo şişer | 10 GB ücretsiz |
+| Telif sorumluluğu | YouTube'da kalır | **sende** | **sende** |
+| Kurulum yükü | en az | az | bucket + domain + WAF |
+
+### Kritik fark: arka planda çalma
+
+YouTube modunda ses gömülü `<iframe>` oynatıcıdan çıkıyor ve mobil tarayıcılar
+bunu arka plana geçince askıya alıyor. Ekranı kilitlediğinde ya da başka bir
+uygulamaya geçtiğinde **yayın susar** — bu bir hata değil, gömülü oynatıcının
+kuralı ve dışarıdan değiştirilemiyor.
+
+Kendi dosyalarınla yayın yaptığında ses `<audio>` üzerinden çalıyor. Uygulama
+kendini MediaSession API ile işletim sistemine tanıtıyor: yayın arka planda
+sürüyor, kilit ekranında kapak, şarkı adı ve oynat/duraklat çıkıyor. İleri/geri
+sarma bilerek kapalı — konum herkes için ortak hesaplandığından tek kişilik
+sarma diye bir şey yok.
+
+> Karışık liste mümkün: aynı yayında hem YouTube hem kendi dosyaların olabilir.
+> Ama sırası YouTube parçasına geldiğinde arka planda çalma o parça boyunca
+> kesilir. Arka plan senin için önemliyse listeyi tamamen kendi dosyalarından
+> kur; `npm run radio:match` karışık bir listeyi tek türe indirmene yarıyor.
+
+### Hangisini seçmeli?
+
+- **Deneme, hızlı kurulum, telifli müzik** → YouTube radyo.
+- **Kendi kayıtların, birkaç parça** → yerel radyo · repo.
+- **Kendi kayıtların, gerçek bir kütüphane, arka planda çalma** → yerel radyo · R2.
 
 ---
 
@@ -132,6 +181,89 @@ Elle ayarlamayı tercih ediyorsan atla: uygulama hiçbir ortam değişkeni olmad
 `ADMIN_PASSWORD` eklersen **http://localhost:3000/admin** açılır (o değişken
 yoksa panel tamamen kapalıdır, giriş ekranı bile çıkmaz).
 
+### `radio:setup` adım adım
+
+Sihirbaz dört bölüm soruyor. Yerel dosya seçtiğinde araya iki soru daha
+giriyor — hangi sorunun neden sorulduğu:
+
+```
+1 · İstasyon        ad, slogan, paylaşım metni
+2 · Yayın kaynağı   dört seçenek:
+      YouTube playlist   → adres istenir, biter
+      Upstash Redis      → REST bilgileri, bağlantı test edilir
+      data/playlist.json → liste repoda durur
+      Yerel ses dosyaları ↓
+        ├ Ses nerede saklansın?   repo (public/audio) | Cloudflare R2
+        ├ Liste nerede tutulsun?  Upstash Redis | data/playlist.json
+        ├ Klasör:                 taranacak dizin (~ desteklenir)
+        └ Playlist adresi         opsiyonel — başlık/sanatçı/kapak eşleştirmesi
+3 · Erişim          admin parolası, YOUTUBE_API_KEY,
+                    kaldırma talebi e-postası
+4 · Yayın başlangıcı epoch: koru | şimdiye al | konumu koru
+```
+
+İki soru kolayca karıştırılıyor ama **birbirinden bağımsız**:
+
+- *Ses nerede saklansın* → `AUDIO_STORAGE` (dosyalar)
+- *Liste nerede tutulsun* → `RADIO_SOURCE` (playlist belgesi)
+
+Redis'ten liste okuyup R2'den ses servis etmek en yaygın kurulum: dosyalar
+repoyu şişirmez, liste de deploy almadan panelden yönetilir.
+
+Son bölümdeki **epoch** akışın sıfır noktası. Liste değiştiyse üçüncü bir
+seçenek çıkıyor: *"Yayın konumunu koru"*. Sezgiye aykırı ama epoch'a
+dokunmamak yayını sabit tutmuyor — konum `(şimdi − epoch) mod toplamSüre` ile
+bulunduğu için toplam süre değişince modulo başka yere düşer ve dinleyiciler
+başka bir parçaya atlar. Konumu korumanın yolu epoch'u oynatmak.
+
+Üçüncü bölümdeki **kaldırma talebi e-postası** `src/lib/site.ts` içine
+yazılıyor, `.env.local`'a değil — künye yapılı veri tutuyor ve orada duruyor.
+Adres "Hakkında" penceresindeki *Kaldırma Talebi* metninin sonunda görünür;
+boş bırakırsanız o cümle adres olmadan biter. Yayına çıkmadan önce doldurun:
+hak sahipleri yazacak yer bulamazsa talep size hiç ulaşmaz.
+
+Kurulumu tekrar çalıştırmak güvenli: her soru mevcut değeri gösterir, boş
+bırakılan hiçbir şeyi değiştirmez ve liste **deponun güncel hâlinden** okunur —
+panelde yaptığın düzenlemeler ezilmez.
+
+### Sıfırdan başlamak
+
+Klonlayıp denedikten sonra temiz bir sayfa açmak için:
+
+```bash
+npm run radio:reset
+```
+
+Repo **içindeki** kullanıcı verisini şablon hâline döndürür — kaynak koda ve
+testlere dokunmaz:
+
+| Hedef | Ne olur |
+| --- | --- |
+| `.env.local` | silinir |
+| `data/playlist.json` | boş istasyona döner (ad, slogan, parçalar) |
+| `public/audio/` | yüklenmiş ses ve kapaklar silinir |
+| `src/lib/site.ts` | künye ve iletişim bilgileri temizlenir |
+
+Son satır fork alanlar için önemli: doldurulmamış bir künye, kaldırma
+taleplerinin **başkasının** gelen kutusuna düşmesi demek.
+
+Onay için `SIFIRLA` yazman gerekiyor; başka bir şey yazmak ya da Ctrl-D
+işlemi iptal eder. Sürüm kontrolündeki dosyalar `git restore <dosya>` ile geri
+gelir, `.env.local` ise `.gitignore`'da olduğu için kalıcı gider.
+
+Repo dışındakiler bilinçli olarak dışarıda: **Upstash Redis**'teki liste ve
+**Cloudflare R2**'deki dosyalar bu klasörün mülkü değil, dokunulmaz. Redis'i
+kurulumdaki *"Listeyi değiştir"* seçeneği zaten üzerine yazıyor; R2'yi
+temizlemek istersen Cloudflare panelinden.
+
+### Kurulumdan sonra
+
+```bash
+npm run dev          # http://localhost:3000 · yönetim: /admin
+npm run radio:match  # karışık liste varsa tek türe indir
+npm run radio:covers # kapakları kendi depona taşı
+```
+
 ### Telefondan test etme
 
 Next'in dev sunucusu, güvenlik gereği `/_next/*` kaynaklarını tanımadığı
@@ -193,12 +325,26 @@ Kayıtlar senin ise, YouTube gömmek yerine doğrudan yayınlayabilirsin:
 npm run radio:add        # 3) Yerel ses dosyalarını ekle (klasör tara)
 ```
 
-Dosyalar `public/audio/` altına kopyalanır ve repoyla birlikte deploy edilir.
-Başlık, sanatçı ve kapak varsa ID3 etiketlerinden gelir; süre ise MP3
-karelerinden milisaniye hassasiyetiyle çıkarılır, çünkü senkron ona dayanıyor.
-`ffprobe` kuruluysa `.m4a`, `.ogg`, `.wav` ve `.flac` de çalışır. Yerel dosyalar
-ayrı bir mod değil — `kind: "audio"` taşıyan parçalar; YouTube parçalarıyla aynı
-listede durabilirler.
+Dosyalar yapılandırdığın **ses deposuna** yazılır: varsayılan `public/audio/`,
+Cloudflare R2 tanımlıysa oraya. Bkz. [Ses dosyaları nerede
+duruyor?](#ses-dosyaları-nerede-duruyor). Başlık, sanatçı ve kapak varsa ID3
+etiketlerinden gelir; süre ise MP3 karelerinden milisaniye hassasiyetiyle
+çıkarılır, çünkü senkron ona dayanıyor. `ffprobe` kuruluysa `.m4a`, `.ogg`,
+`.wav` ve `.flac` de çalışır. Yerel dosyalar ayrı bir mod değil —
+`kind: "audio"` taşıyan parçalar; YouTube parçalarıyla aynı listede
+durabilirler.
+
+Dosya adları başlık ve sanatçıyı güvenilir taşımıyorsa, aynı şarkıların YouTube
+kayıtları listedeyken:
+
+```bash
+npm run radio:match
+```
+
+Süre ve normalize edilmiş başlık üzerinden eşleştirir; ses R2'den çalmaya devam
+ederken **başlık, sanatçı ve kapak** YouTube kaydından alınır ve o kayıt
+listeden düşürülür (yoksa aynı şarkı iki kez çalardı). Şüpheli eşleşmeleri tek
+tek sorar.
 
 > **Bunun sorumluluğu sende.** Geri kalan her şey YouTube'un CDN'inden akıyor:
 > sunucun hiç ses göndermiyor ve oynatma YouTube'un şartları altında oluyor.
@@ -220,6 +366,119 @@ dışarı yönlendirirdi.
 `/admin` üzerinden yapılan düzenlemeler bunu yapamaz: panel sunucuda çalışıyor
 ve orada dosya sistemi salt okunur. Panelde çalıştıktan sonra kaynak
 bölümündeki **Yedeğe kopyala** düğmesini kullanıp commit'le.
+
+---
+
+## Ses dosyaları nerede duruyor?
+
+Bu, listenin nerede durduğundan **bağımsız** bir soru: Redis'ten liste okuyup
+R2'den ses servis etmek geçerli bir kurulumdur. `npm run radio:setup` ikisini
+ayrı ayrı sorar; cevap `AUDIO_STORAGE` değişkenine yazılır. YouTube parçaları
+bu ekseni hiç kullanmaz — sesleri zaten YouTube'dan gelir.
+
+| Depo                     | Dosyalar nerede      | Dinleyici trafiği                            | Ne zaman              |
+| ------------------------ | -------------------- | -------------------------------------------- | --------------------- |
+| **`local`** (varsayılan) | `public/audio/`, repoda | deploy platformundan (Vercel free: 100 GB/ay) | birkaç parça, deneme  |
+| **`r2`**                 | Cloudflare R2        | **ücretsiz** — R2'de egress ücreti yok       | gerçek bir kütüphane  |
+
+Ses ağırdır: 128 kbps'de saatte ~57 MB. Vercel'in 100 GB'ı ~1750 dinleyici-saatinde
+biter. R2'de bu kalem hiç yoktur; ücret yalnızca depolamadan alınır ve 10 GB
+ücretsizdir (aşan kısım $0.015/GB/ay). Ücretsiz pay bir deneme süresi değil,
+her ay yenilenir.
+
+### Cloudflare R2 kurulumu
+
+1. **Bucket aç** — Cloudflare → R2 → *Create bucket*. Konum `Automatic`, sınıf
+   **Standard**. *Infrequent Access* seçme: depolaması ucuz ama veri çekme
+   ücreti var, sürekli çalan bir radyoda pahalıya gelir.
+2. **Custom domain bağla** — bucket → *Settings* → *Public access* → **Connect
+   Domain**, ör. `cdn.radyom.com`. Bu adres `R2_PUBLIC_URL` olur. `r2.dev`
+   adresini kullanma: hız sınırlı ve WAF kuralı uygulanamaz.
+3. **API anahtarı üret** — R2 → *Manage API tokens* → **Object Read & Write**,
+   yalnızca bu bucket'a yetkili. Secret bir kez gösterilir.
+4. `npm run radio:setup` çalıştır, depo sorusunda R2'yi seç, beş değeri gir.
+
+Yükleme imzalı S3 ucuna gider (`<hesap>.r2.cloudflarestorage.com`), oynatma ise
+public custom domain'den olur — ikisi ayrı kapıdır. Anahtarlar istemciye hiç
+ulaşmaz; herkese görünen tek değer `R2_PUBLIC_URL`.
+
+### Kapaklar
+
+Kapak, kendi radyonda gözden kaçması en kolay eksik: ses dosyaları depona
+taşınır ama **kapaklar dışarıda kalır**. `radio:match` bir parçayı YouTube
+kaydıyla eşleştirdiğinde görseli oraya *bağlamakla* yetinseydi, sesi kendi
+deponda olan bir yayın kapaklar için YouTube'a bağımlı kalırdı — video
+silindiğinde kapak da giderdi.
+
+Bu yüzden kapaklar **indirilip depoya kopyalanıyor**. Üç kaynak var, sırayla:
+
+1. **MP3'e gömülü görsel** (ID3). `radio:add` ve panelden yükleme bunu
+   kendiliğinden çıkarır.
+2. **Panelde verdiğin kapak** — dosya seçebilir ya da bir adres yapıştırabilirsin.
+   Adres bir YouTube linkiyse videonun kapağı `maxresdefault → sddefault →
+   hqdefault` sırasıyla denenip ilk bulunan indirilir.
+3. **`radio:match`** — eşleşen YouTube kaydının kapağı otomatik indirilir.
+
+Elindeki liste zaten dışarıya bağlıysa tek komutla onarılır:
+
+```bash
+npm run radio:covers
+```
+
+Durumu raporlar (kaç kapak depoda, kaç tanesi dışarıda, kaç parça kapaksız),
+dışarıdakileri indirip depoya taşır ve listedeki adresleri günceller. Hiç kapağı
+olmayan parçalar için bir YouTube playlist adresi isteyebilir: parçalar süre ve
+başlığa göre eşleştirilip kapakları oradan çekilir.
+
+Kapağı bulunamayan parça yayını bozmaz; istasyon ikonuyla görünür.
+
+> Kapaklar hangi adresten gelirse gelsin çalışır: `next.config.ts` içinde
+> alan adı tanımlaman gerekmez. Kapak gösterimi bilerek `next/image`
+> kullanmıyor — o, uzak görseller için bir allowlist istiyor ve senin depo
+> adresini oraya bağlamak, adres değiştiğinde oynatıcıyı çökertirdi.
+
+### Hotlink koruması
+
+Custom domain public olduğu için başka siteler dosyalarını kendi sayfalarında
+kaynak olarak kullanabilir. Cloudflare'de tek kural bunu keser:
+
+**Security → WAF → Custom rules → Create rule**
+
+```
+(http.host eq "cdn.radyom.com"
+ and http.referer ne ""
+ and not http.referer contains "radyom.com"
+ and not http.referer contains "localhost"
+ and not http.referer contains ".local")
+→ Block
+```
+
+İki muafiyet kaza değil:
+
+- **Boş `Referer`** serbest. Doğrudan açılan adresler, gizlilik ayarı `Referer`
+  göndermeyen tarayıcılar ve bazı mobil istemciler meşru dinleyicidir; onları
+  bloklamak kendi kullanıcılarını kesmek olur.
+- **`localhost` ve `.local`** serbest. Yoksa `npm run dev` sırasında sesler
+  gelmez ve CDN bozuk görünür.
+
+Ücretsiz planda 5 özel kural hakkın var. `Referer` taklit edilebildiği için bu
+kararlı bir saldırganı durdurmaz; başka bir sitenin `<audio>` etiketiyle
+beslenmesini ise tamamen keser — korunmak istediğin senaryo budur.
+
+Kuralın çalıştığını doğrula (yayılması ~1 dakika sürebilir):
+
+```bash
+curl -sS -o /dev/null -w "%{http_code}\n" -H "Referer: https://baskasite.com/" \
+  https://cdn.radyom.com/bir-parca.mp3     # 403 dönmeli
+
+curl -sS -o /dev/null -w "%{http_code}\n" -H "Referer: https://radyom.com/" \
+  https://cdn.radyom.com/bir-parca.mp3     # 200 dönmeli
+```
+
+> R2'de imzalı (presigned) adresler custom domain ile **çalışmıyor**, custom
+> domain de Cloudflare cache'inin ve WAF'ın tek yolu. İkisini birleştiren HMAC
+> doğrulaması Pro plan gerektiriyor. Ücretsiz planda doğru kurulum: public
+> custom domain + `Referer` kuralı.
 
 ---
 
@@ -284,6 +543,12 @@ içeriği — ad, slogan, paylaşım metni — çeviri değil, senin verin.
 | `RADIO_PLAYLIST_TTL_SEC`   | opsiyonel | opsiyonel                 | YouTube listesinin tazelenme sıklığı. Varsayılan 300.                                            |
 | `UPSTASH_REDIS_REST_URL`   | opsiyonel | `redis` modunda zorunlu   | Playlist deposu. Yoksa `data/playlist.json` kullanılır.                                          |
 | `UPSTASH_REDIS_REST_TOKEN` | opsiyonel | `redis` modunda zorunlu   | Yukarıdakiyle birlikte gelir.                                                                    |
+| `AUDIO_STORAGE`            | opsiyonel | opsiyonel                 | `local` veya `r2`. Kendi ses dosyaların nerede saklansın. Boşsa R2 anahtarlarına bakılır.        |
+| `R2_ACCOUNT_ID`            | —         | `r2` modunda zorunlu      | Cloudflare hesap kimliği.                                                                        |
+| `R2_BUCKET`                | —         | `r2` modunda zorunlu      | Bucket adı.                                                                                      |
+| `R2_ACCESS_KEY_ID`         | —         | `r2` modunda zorunlu      | Object Read & Write yetkili API anahtarı.                                                        |
+| `R2_SECRET_ACCESS_KEY`     | —         | `r2` modunda zorunlu      | Yukarıdakiyle birlikte gelir. İstemciye hiç gitmez.                                              |
+| `R2_PUBLIC_URL`            | —         | `r2` modunda zorunlu      | Dosyaların herkese açık adresi — bucket'a bağladığın custom domain.                              |
 | `YOUTUBE_API_KEY`          | opsiyonel | **şiddetle önerilir**     | Parça metadata'sını resmî API'den çeker. Bkz. aşağıdaki not.                                     |
 | `NEXT_PUBLIC_SITE_URL`     | opsiyonel | opsiyonel                 | Paylaşım bağlantıları ve OpenGraph için mutlak adres. Vercel'de otomatik algılanır.              |
 | `ALLOWED_DEV_ORIGINS`      | opsiyonel | —                         | Ek geliştirme adresleri, ör. LAN IP'si. Yalnızca geliştirme.                                     |
@@ -384,9 +649,36 @@ npm run radio:add -- "https://youtu.be/VIDEO_ID"
 npm run radio:add -- "https://www.youtube.com/playlist?list=PLAYLIST_ID"
 ```
 
+`npm run radio:covers` kapakları kendi depona taşır (bkz.
+[Kapaklar](#kapaklar)). `npm run radio:match` yerel dosyaları listedeki YouTube
+kayıtlarıyla birleştirir.
+
 `npm run radio:sync`, elle düzenlediğin kayıtların metadata'sını tazeler.
 `durationSec` her zaman yenilenir çünkü senkron ona dayanıyor; elle yazdığın
 başlık ve sanatçı `--force` vermedikçe korunur.
+
+#### Panelden dosya yükleme
+
+`/admin` → **Dosyadan ekle**. Ses dosyasını seçersin; süre, ID3 etiketleri ve
+gömülü kapak dosyadan okunur, dosya yapılandırdığın depoya (R2 ya da
+`public/audio`) yüklenir ve parça `kind: "audio"` olarak taslak listeye
+eklenir. Birden çok dosya seçebilirsin.
+
+Tek dosya seçtiğinde **Başlık**, **Sanatçı**, **Kapak** ve **Kapak adresi**
+alanları dosyadan okunanın üzerine yazar. Çoklu seçimde bu alanlar yok sayılır —
+yoksa hepsi aynı adı alırdı.
+
+**Kapak adresi** alanına bir YouTube linki yapıştırırsan o videonun kapağı
+indirilip senin depona kopyalanır; dış bağlantı bırakılmaz.
+
+MP3'te süreyi sunucu kendi çözümleyicisiyle okur ve o değer geçerlidir. Diğer
+biçimlerde tarayıcının ölçtüğü süreye düşülür, çünkü üretimde `ffprobe`
+bulunacağının garantisi yoktur.
+
+> Aynı sayfadaki YouTube linki alanı hâlâ çalışır ve `kind: "youtube"` bir parça
+> ekler. Tamamen kendi dosyalarından yayın yapıyorsan onu kullanma: sırası
+> geldiğinde YouTube oynatıcısı açılır ve arka planda çalma özelliğini
+> kaybedersin.
 
 ## Görünüm ve PWA
 

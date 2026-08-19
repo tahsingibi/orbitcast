@@ -29,6 +29,8 @@ export const tr = {
     queueLink: "Yayın akışı",
     infoLink: "Hakkında",
     repoLink: "GitHub",
+    poweredBy: "OrbitCast",
+    poweredByTitle: "OrbitCast ile yapıldı — kaynak kodu GitHub'da",
   },
 
   source: {
@@ -71,13 +73,23 @@ export const tr = {
       "barındırılmaz, indirilmez, kopyalanmaz veya yeniden yayınlanmaz",
     copyrightRest:
       ". İçerik doğrudan YouTube'un kendi oynatıcısı ve altyapısı üzerinden, hak sahiplerinin YouTube'da yayınladığı hâliyle çalınır. Oynatma sırasında YouTube Hizmet Şartları geçerlidir.",
+    howBodySelfHosted:
+      "{station}, istasyonun kendi ses kütüphanesinden yayın yapan bir web " +
+      "oynatıcısıdır. Tüm dinleyiciler ortak bir zaman hesabıyla aynı parçanın " +
+      "aynı saniyesinde buluşur.",
+    copyrightSelfHosted:
+      "Bu yayındaki ses dosyaları istasyonun kendi altyapısında barındırılıyor. " +
+      "İçerik yalnızca dinlemek için sunulur; indirme bağlantısı verilmez ve " +
+      "yayından ticari gelir elde edilmez.",
     copyrightOwners:
       "Tüm eserlerin hakları ilgili sanatçılara, yapımcılara ve hak sahiplerine aittir. Bu site içerik üzerinde hiçbir mülkiyet iddiasında bulunmaz ve yayından ticari gelir elde etmez.",
     takedownHeading: "KALDIRMA TALEBİ",
     takedownBody:
-      "Bir eserin hak sahibiyseniz ve listeden çıkarılmasını istiyorsanız, aşağıdaki adrese eserin adını ve YouTube bağlantısını içeren bir e-posta gönderin. Talep doğrulandıktan sonra parça",
+      "Bir eserin hak sahibiyseniz ve listeden çıkarılmasını istiyorsanız, eserin adını ve bağlantısını içeren bir e-posta gönderin. Talep doğrulandıktan sonra parça",
     takedownEmphasis: "gecikmeksizin",
     takedownRest: "listeden kaldırılır.",
+    /** Adresin önündeki giriş; yalnızca adres tanımlıysa yazılır. */
+    takedownContactLead: "Talepleriniz için:",
     takedownSubject: "{station} — Kaldırma talebi",
     creditsHeading: "KÜNYE",
     creditsBody: "{author} tarafından yapıldı.",
@@ -178,10 +190,38 @@ export const tr = {
     add: "Ekle",
     adding: "Çözümleniyor…",
     duplicate: "Bu parça listede zaten var.",
+
+    linkHeading: "YouTube linkiyle ekle",
+    linkHint:
+      "Bu parçanın sesi YouTube'dan gelir: sırası geldiğinde gömülü oynatıcı " +
+      "açılır ve arka planda çalma çalışmaz. Kendi dosyalarınla yayın " +
+      "yapıyorsan yukarıdaki yüklemeyi kullan.",
+    uploadHeading: "Dosyadan ekle",
+    uploadHint:
+      "MP3 seçin: süre, etiketler ve gömülü kapak dosyadan okunur. " +
+      "Tek dosya seçtiğinizde aşağıdaki alanlarla üzerine yazabilirsiniz.",
+    uploadChoose: "Ses dosyası seç",
+    uploadCover: "Kapak",
+    uploadCoverUrl: "Kapak adresi",
+    uploadCoverUrlPlaceholder: "YouTube linki veya görsel adresi",
+    uploadCoverUrlHint:
+      "Dosyada gömülü kapak yoksa kullanılır. YouTube linki verirsen videonun " +
+      "kapağı indirilip senin depona kopyalanır — dışarıya bağlı kalmaz.",
+    uploadTitleField: "Başlık",
+    uploadArtistField: "Sanatçı",
+    uploadOptional: "opsiyonel",
+    uploading: "Yükleniyor {done}/{total}…",
+    uploadDone: "{count} parça eklendi · {where}",
+    unknownArtist: "Bilinmeyen sanatçı",
     notEmbeddable: "Gömülü oynatmaya kapalı — yayında sessiz kalır.",
 
     emptyList: "Liste boş. Yukarıdan bir YouTube linki ekleyin.",
     dragHint: "Sürükleyerek sıralayın",
+    shuffle: "Karıştır",
+    shuffleHint:
+      "Listeyi karıştırır ve aynı sanatçıyı arka arkaya koymamaya çalışır. " +
+      "Kaydedene kadar yayına yansımaz.",
+    shuffleDone: "{count} parça karıştırıldı · yan yana aynı sanatçı: {runs}",
     playFromHere: "Yayını buradan başlat",
     moveUp: "Yukarı taşı",
     moveDown: "Aşağı taşı",
@@ -210,6 +250,12 @@ export const tr = {
     readOnlyWhileBackup:
       "Yedek liste yayındayken düzenleme kapalı. Önce canlı listeye dönün.",
     trackFieldMissing: "#{index}: videoId veya süre eksik.",
+    uploadNoFile: "Dosya seçilmedi.",
+    uploadBadType: "Desteklenmeyen dosya türü.",
+    uploadTooLarge: "Dosya çok büyük (en fazla 50 MB).",
+    uploadNoDuration:
+      "Parça süresi okunamadı. MP3 kullanmayı deneyin — diğer biçimlerde süre tarayıcıdan okunur.",
+    uploadFailed: "Depoya yüklenemedi.",
 
     // youtube-metadata.ts kodları
     INVALID_URL: "Geçerli bir YouTube linki veya video id'si değil.",

@@ -19,6 +19,8 @@ import {
   resolvePlaylistVideoIds,
   resolveTrack,
 } from "../src/lib/youtube-metadata.ts";
+import { rebaseEpoch } from "../src/lib/radio.ts";
+import { resolveStorageKind } from "../src/lib/storage/index.ts";
 import { importAudioFolder } from "./lib/audio-import.mjs";
 import { broadcastSource, readDoc, storeKind, storeLabel, writeDoc } from "./lib/store.mjs";
 
@@ -74,17 +76,62 @@ const readPlaylist = readDoc;
 const writePlaylist = writeDoc;
 
 /**
- * Boş bir listeye ilk parçalar eklenirse yayını baştan başlatır.
+ * Liste değiştikten sonra yayın başlangıcını yerine oturtur.
  *
- * epoch akışın sıfır noktası. Şablon boş geldiği için ilk parça eklendiğinde
- * eski bir tarihte kalırsa yayın listenin ortasından başlar — kimsenin
- * beklemediği bir davranış.
+ * Karıştırılması kolay iki ayrı durum var:
+ *
+ *   Liste boştu  — epoch şimdiye alınır, yayın ilk parçadan başlar. Şablon
+ *                  eski bir tarihle geldiği için gerekli; yoksa yayın
+ *                  listenin ortasından açılırdı.
+ *
+ *   Liste uzadı  — epoch'a *dokunmamak* yayını sabit tutmuyor, tam tersine
+ *                  kaydırıyor. Konum `(now - epoch) mod toplamSüre` ile
+ *                  bulunduğundan toplam süre değişince modulo başka yere
+ *                  düşer ve sapma her turda birikir. Sesin yerinde kalması
+ *                  için epoch geri sarılmak zorunda.
+ *
+ * `ask` verilmezse (komut satırı argümanlarıyla çalıştırma) soru sorulmaz ve
+ * dinleyiciyi rahatsız etmeyen seçenek uygulanır.
  */
-function startFromFirstTrack(doc, previousCount) {
+async function settleEpoch(doc, previousCount, ask) {
   if (previousCount === 0 && doc.tracks.length > 0) {
     doc.epoch = new Date().toISOString();
     log(c.dim("  Liste boştu; yayın başlangıcı şimdiye ayarlandı."));
+    return;
   }
+
+  if (doc.tracks.length === previousCount) return;
+
+  // Parçalar yalnızca sona ekleniyor; önceki liste ilk N parçadır.
+  const previous = doc.tracks.slice(0, previousCount);
+  const rebased = rebaseEpoch(
+    {
+      epochMs: Date.parse(doc.epoch),
+      tracks: previous,
+      totalDurationSec: previous.reduce((sum, t) => sum + t.durationSec, 0),
+    },
+    doc.tracks,
+    Date.now(),
+  );
+
+  // Çalan parça yeni listede yoksa korunacak bir konum da yok.
+  if (rebased === null) return;
+
+  if (ask) {
+    log();
+    log(c.dim("  Liste uzadı. epoch'a dokunulmazsa yayın kayar: toplam süre"));
+    log(c.dim("  değiştiği için dinleyiciler başka bir parçaya atlar."));
+    const answer = (await ask("  Yayın kesintisiz devam etsin mi? [E/h] "))
+      .trim()
+      .toLowerCase();
+    if (answer === "h" || answer === "n") {
+      log(c.yellow("  epoch korundu; yayın konumu kaydı."));
+      return;
+    }
+  }
+
+  doc.epoch = new Date(rebased).toISOString();
+  log(c.dim("  Yayın konumu korundu; epoch yeniden hesaplandı."));
 }
 
 /**
@@ -292,7 +339,7 @@ async function addTracks(ask, doc) {
 
   const before = doc.tracks.length;
   doc.tracks.push(...added);
-  startFromFirstTrack(doc, before);
+  await settleEpoch(doc, before, ask);
   await writePlaylist(doc);
   log(c.green(`  ${added.length} parça eklendi.`));
 }
@@ -343,7 +390,7 @@ async function importPlaylist(ask, doc) {
 
   const before = replace ? 0 : doc.tracks.length;
   doc.tracks = replace ? added : [...doc.tracks, ...added];
-  startFromFirstTrack(doc, before);
+  await settleEpoch(doc, before, ask);
   await writePlaylist(doc);
   log(c.green(replace ? `  Liste ${added.length} parçayla değiştirildi.` : `  ${added.length} parça eklendi.`));
 }
@@ -358,11 +405,18 @@ async function askReplace(ask, doc) {
   return answer === "2";
 }
 
-/** Yerel ses dosyalarını public/audio altına alıp listeye ekler. */
+/** Yerel ses dosyalarını yapılandırılmış depoya alıp listeye ekler. */
 async function addLocalFiles(ask, doc) {
+  // Depo seçimi kurulumda yapılıyor; burada yalnızca hangisinin geçerli
+  // olduğunu söylüyoruz ki dosyaların nereye gittiği sürpriz olmasın.
+  const target =
+    resolveStorageKind() === "r2"
+      ? "Cloudflare R2'ye yüklenir, repo değişmez."
+      : "public/audio altına kopyalanır ve repoya dahil olur.";
+
   log();
   log(c.dim("  Ses dosyalarının bulunduğu klasörü verin; alt klasörler de taranır."));
-  log(c.dim("  Dosyalar public/audio altına kopyalanır ve repoya dahil olur."));
+  log(c.dim(`  Dosyalar ${target}`));
   log();
 
   const folder = (await ask("  Klasör: ")).trim();
@@ -403,7 +457,7 @@ async function addLocalFiles(ask, doc) {
 
   const before = doc.tracks.length;
   doc.tracks.push(...result.tracks);
-  startFromFirstTrack(doc, before);
+  await settleEpoch(doc, before, ask);
   await writePlaylist(doc);
   log(c.green(`  ${result.tracks.length} parça eklendi.`));
 }
@@ -504,7 +558,8 @@ async function addFromArguments(inputs) {
 
   const before = doc.tracks.length;
   doc.tracks.push(...added);
-  startFromFirstTrack(doc, before);
+  // Etkileşimsiz yol: soru sorulmaz, dinleyiciyi rahatsız etmeyen seçenek.
+  await settleEpoch(doc, before);
   await writePlaylist(doc);
   log(c.green(`${added.length} parça eklendi · toplam ${doc.tracks.length}`));
 }

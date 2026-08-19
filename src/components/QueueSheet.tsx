@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import CoverArt from "@/components/CoverArt";
 import { useNativeDialog } from "@/hooks/useNativeDialog";
 import { useScrollFade } from "@/hooks/useScrollFade";
 import { useT } from "@/lib/i18n/context";
@@ -12,6 +12,7 @@ import {
   formatClock,
   resolveQueue,
   type QueueEntry,
+  type Track,
   type RadioState,
   type Station,
 } from "@/lib/radio";
@@ -254,7 +255,7 @@ export default function QueueSheet({ open, onClose, station, state }: Props) {
           <section className="mt-4">
             <SectionLabel accent>{t.queue.nowPlaying}</SectionLabel>
             <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-2">
-              <Cover src={state.track.thumbnail} />
+              <Cover track={state.track} />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-neutral-100">
                   {state.track.title}
@@ -327,7 +328,7 @@ function QueueRow({ entry, direction }: { entry: QueueEntry; direction: "past" |
 
   return (
     <li className="flex items-center gap-3 py-1.5">
-      <Cover src={entry.track.thumbnail} dim />
+      <Cover track={entry.track} dim />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm text-neutral-300">{entry.track.title}</p>
         <p className="truncate text-xs text-neutral-600">{entry.track.artist}</p>
@@ -339,14 +340,12 @@ function QueueRow({ entry, direction }: { entry: QueueEntry; direction: "past" |
   );
 }
 
-function Cover({ src, dim }: { src: string; dim?: boolean }) {
+function Cover({ track, dim }: { track: Track; dim?: boolean }) {
   return (
-    <Image
-      src={src}
-      alt=""
+    <CoverArt
+      track={track}
       width={40}
       height={40}
-      draggable={false}
       className={`h-10 w-10 shrink-0 rounded-md object-cover ${dim ? "opacity-60" : ""}`}
     />
   );

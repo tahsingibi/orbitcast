@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { normalizeTrackInput } from "@/lib/track-input";
 import { isAuthenticated } from "@/lib/admin-auth";
 import { format } from "@/lib/i18n/format";
 import { getI18n } from "@/lib/i18n/server";
@@ -108,20 +109,14 @@ export async function PUT(request: Request) {
 
   const tracks: Track[] = [];
   for (const [i, raw] of body.tracks.entries()) {
-    if (!raw?.videoId || !(raw.durationSec > 0)) {
+    const track = normalizeTrackInput(raw);
+    if (!track) {
       return NextResponse.json(
         { error: format(t.errors.trackFieldMissing, { index: i + 1 }) },
         { status: 400 },
       );
     }
-    tracks.push({
-      videoId: String(raw.videoId),
-      title: String(raw.title || "").trim() || "Bilinmeyen parça",
-      artist: String(raw.artist || "").trim() || "Bilinmeyen sanatçı",
-      durationSec: Math.round(Number(raw.durationSec)),
-      thumbnail: String(raw.thumbnail || `https://i.ytimg.com/vi/${raw.videoId}/hqdefault.jpg`),
-      url: String(raw.url || `https://www.youtube.com/watch?v=${raw.videoId}`),
-    });
+    tracks.push(track);
   }
 
   // startAtIndex verildiyse yayın o parçanın başına çekilir.

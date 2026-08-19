@@ -118,7 +118,44 @@ function readPicture(body) {
 
   const data = body.subarray(cursor);
   if (data.length < 100) return null;
-  return { mime: mime.includes("png") ? "image/png" : "image/jpeg", data };
+  return { mime: sniffImageMime(data) ?? normalizeMime(mime), data };
+}
+
+/** Etiketteki MIME metnini bildiğimiz bir tipe indirger. */
+function normalizeMime(declared) {
+  const value = String(declared).toLowerCase();
+  if (value.includes("png")) return "image/png";
+  if (value.includes("webp")) return "image/webp";
+  return "image/jpeg";
+}
+
+/**
+ * Görselin gerçek biçimini ilk baytlarından okur.
+ *
+ * Etikete güvenilmiyor çünkü yazıcılar yanılıyor: yt-dlp ile indirilen
+ * dosyalarda YouTube'un webp kapağı sıkça `image/jpeg` diye bildiriliyor.
+ * Yanlış tanılanan kapak depoya yanlış uzantı ve yanlış `Content-Type` ile
+ * gidiyor — dosya webp, sunucu "jpeg" diyor. Baytlar yalan söylemiyor.
+ */
+function sniffImageMime(data) {
+  if (data.length >= 3 && data[0] === 0xff && data[1] === 0xd8 && data[2] === 0xff) {
+    return "image/jpeg";
+  }
+  if (
+    data.length >= 8 &&
+    data[0] === 0x89 &&
+    data.toString("latin1", 1, 4) === "PNG"
+  ) {
+    return "image/png";
+  }
+  if (
+    data.length >= 12 &&
+    data.toString("latin1", 0, 4) === "RIFF" &&
+    data.toString("latin1", 8, 12) === "WEBP"
+  ) {
+    return "image/webp";
+  }
+  return null;
 }
 
 /** İlk geçerli MPEG kare başlığını bulup çözer. */
@@ -213,21 +250,16 @@ async function durationViaFfprobe(filePath) {
 }
 
 /**
- * Bir ses dosyasını okur.
+ * Bellekteki bir MP3'ü okur.
  *
- * Dönen `durationSec` kesirli olabilir; yuvarlamayı çağıran tarafa bırakıyoruz
- * ki toplam süre hesabında biriken hata kontrol edilebilsin.
+ * Panelden yüklenen dosya diske hiç inmiyor, dolayısıyla ffprobe'a düşme
+ * imkânı da yok — burada yalnızca kendi çözümleyicimiz çalışıyor. Süre
+ * bulunamazsa 0 dönüyor; ne yapılacağına çağıran karar verir.
  */
-export async function readAudioFile(filePath) {
-  const isMp3 = /\.mp3$/i.test(filePath);
-  const buffer = isMp3 ? await readFile(filePath) : null;
-
-  if (!isMp3) {
-    const durationSec = await durationViaFfprobe(filePath);
-    if (!durationSec) throw new Error("AUDIO_DURATION_UNREADABLE");
-    return { durationSec, title: "", artist: "", album: "", picture: null };
-  }
-
+export function readAudioBuffer(input) {
+  // Çözümleyici Buffer metotlarına (readUInt32BE, toString(latin1)) dayanıyor;
+  // düz bir Uint8Array geldiğinde sessizce "etiket yok" sonucu çıkıyordu.
+  const buffer = Buffer.isBuffer(input) ? input : Buffer.from(input);
   const tags = readId3(buffer);
   const frame = readFrameHeader(buffer, tags.size);
 
@@ -242,17 +274,35 @@ export async function readAudioFile(filePath) {
       : ((buffer.length - frame.offset) * 8) / frame.bitrate;
   }
 
-  // Kendi hesabımız tutmadıysa (bozuk başlık, ham stream) ffprobe'a soruyoruz.
-  if (!(durationSec > 0)) {
-    durationSec = (await durationViaFfprobe(filePath)) ?? 0;
-  }
-  if (!(durationSec > 0)) throw new Error("AUDIO_DURATION_UNREADABLE");
-
   return {
-    durationSec,
+    durationSec: durationSec > 0 ? durationSec : 0,
     title: tags.title,
     artist: tags.artist,
     album: tags.album,
     picture: tags.picture,
   };
+}
+
+/**
+ * Bir ses dosyasını okur.
+ *
+ * Dönen `durationSec` kesirli olabilir; yuvarlamayı çağıran tarafa bırakıyoruz
+ * ki toplam süre hesabında biriken hata kontrol edilebilsin.
+ */
+export async function readAudioFile(filePath) {
+  if (!/\.mp3$/i.test(filePath)) {
+    const durationSec = await durationViaFfprobe(filePath);
+    if (!durationSec) throw new Error("AUDIO_DURATION_UNREADABLE");
+    return { durationSec, title: "", artist: "", album: "", picture: null };
+  }
+
+  const result = readAudioBuffer(await readFile(filePath));
+
+  // Kendi hesabımız tutmadıysa (bozuk başlık, ham stream) ffprobe'a soruyoruz.
+  const durationSec =
+    result.durationSec > 0 ? result.durationSec : ((await durationViaFfprobe(filePath)) ?? 0);
+
+  if (!(durationSec > 0)) throw new Error("AUDIO_DURATION_UNREADABLE");
+
+  return { ...result, durationSec };
 }

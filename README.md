@@ -21,19 +21,25 @@ badge showing how many people are listening with you right now.
   <img src="docs/queue.png" alt="Broadcast queue" width="380">
 </p>
 
-**Why this architecture?** No audio file is ever downloaded, stored or
-re-broadcast. Playback happens through the official YouTube IFrame Player API,
-on YouTube's own infrastructure. Two consequences follow: you stay on the right
-side of copyright, and **your bandwidth cost is zero** — 10 listeners and
-10,000 listeners both download exactly nothing from your server.
+**Why this architecture?** The application server never carries audio: the
+broadcast position is pure arithmetic, and the sound itself goes straight to the
+listener either from YouTube's own player or from your object store (Cloudflare
+R2). Two consequences follow — 10 listeners and 10,000 listeners both download
+exactly nothing from your server, and **your bandwidth cost stays zero**.
+
+Whether you broadcast your own recordings or YouTube tracks also decides how the
+player behaves in the background. The trade-offs are laid out in [Which radio
+are you building?](#which-radio-are-you-building).
 
 ---
 
 ## Contents
 
+- [Which radio are you building?](#which-radio-are-you-building)
 - [How it works](#how-it-works)
 - [Quick start](#quick-start)
 - [Where the playlist lives](#where-the-playlist-lives)
+- [Where the audio files live](#where-the-audio-files-live)
 - [Make it yours](#make-it-yours)
 - [Languages](#languages)
 - [Environment variables](#environment-variables)
@@ -46,6 +52,49 @@ side of copyright, and **your bandwidth cost is zero** — 10 listeners and
 - [Copyright](#copyright)
 - [License](#license)
 - [Credits](#credits)
+
+---
+
+## Which radio are you building?
+
+There are three setups. `npm run radio:setup` asks this first; you can change it
+later, but **deciding here** saves the most time.
+
+| | **YouTube radio** | **Local radio · repo** | **Local radio · R2** |
+| --- | --- | --- | --- |
+| Audio comes from | YouTube CDN | `public/audio/` in the repo | Cloudflare R2 |
+| Audio files needed | no | yes | yes |
+| Bandwidth bill | **none** | your deploy platform | **none** (R2 egress is free) |
+| **Background playback** | **does not work** | works | works |
+| Lock-screen controls | no | yes | yes |
+| Library size | — | bloats the repo | 10 GB free |
+| Licensing responsibility | stays with YouTube | **yours** | **yours** |
+| Setup effort | lowest | low | bucket + domain + WAF |
+
+### The critical difference: background playback
+
+In YouTube mode the audio comes from an embedded `<iframe>` player, and mobile
+browsers suspend that when it goes to the background. Lock the screen or switch
+apps and **the broadcast stops** — this is not a bug, it is how the embedded
+player behaves and it cannot be changed from the outside.
+
+With your own files the audio plays through `<audio>`. The app announces itself
+to the operating system via the MediaSession API: playback continues in the
+background and the lock screen shows artwork, track name and play/pause. Seeking
+and skipping are deliberately disabled — the position is computed identically for
+everyone, so per-listener seeking does not exist.
+
+> Mixed playlists are allowed: one broadcast can hold both YouTube tracks and
+> your own files. But while a YouTube track is playing, background playback is
+> off for its duration. If background matters to you, build the list entirely
+> from your own files — `npm run radio:match` collapses a mixed list into one
+> kind.
+
+### Which one should you pick?
+
+- **Trying it out, fastest setup, licensed music** → YouTube radio.
+- **Your own recordings, a handful of tracks** → local radio · repo.
+- **Your own recordings, a real library, background playback** → local radio · R2.
 
 ---
 
@@ -130,6 +179,92 @@ environment variables at all, reading `data/playlist.json`. Add
 `ADMIN_PASSWORD` to `.env.local` to unlock **http://localhost:3000/admin**
 (without it the panel is fully disabled, not even a login screen).
 
+### `radio:setup` step by step
+
+The wizard asks four sections. Choosing local files inserts two more questions —
+here is what gets asked and why:
+
+```
+1 · Station         name, tagline, share line
+2 · Source          four options:
+      YouTube playlist   → asks for the URL, done
+      Upstash Redis      → REST credentials, connection is tested
+      data/playlist.json → the list lives in the repo
+      Local audio files ↓
+        ├ Where should audio live?    repo (public/audio) | Cloudflare R2
+        ├ Where should the list live? Upstash Redis | data/playlist.json
+        ├ Folder:                     directory to scan (~ is supported)
+        └ Playlist URL                optional — matches title/artist/cover
+3 · Access          admin password, YOUTUBE_API_KEY,
+                    takedown contact email
+4 · Broadcast start epoch: keep | set to now | preserve position
+```
+
+Two of those questions are easy to conflate but are **independent**:
+
+- *Where should audio live* → `AUDIO_STORAGE` (the files)
+- *Where should the list live* → `RADIO_SOURCE` (the playlist document)
+
+Reading the list from Redis while serving audio from R2 is the most common
+setup: files never bloat the repo, and the list stays editable from the panel
+without redeploying.
+
+The **epoch** in the last section is the zero point of the stream. If the list
+changed, a third option appears: *"Preserve broadcast position"*. It is
+counter-intuitive, but leaving the epoch alone does **not** hold the broadcast
+still — the position is `(now − epoch) mod total`, so when the total duration
+changes the modulo lands somewhere else and listeners jump to another track.
+Holding the position means moving the epoch.
+
+The **takedown contact email** in the third section is written into
+`src/lib/site.ts`, not `.env.local` — the credits hold structured data and live
+there. The address appears at the end of the *Takedown requests* text in the
+About dialog; leave it blank and that sentence simply ends without one. Fill it
+in before going live: if rights holders have nowhere to write, the request never
+reaches you.
+
+Running setup again is safe: every question offers the current value, blank
+answers change nothing, and the list is read from **the live store** — edits you
+made in the panel are not overwritten.
+
+### Starting over
+
+To get back to a clean slate after cloning and experimenting:
+
+```bash
+npm run radio:reset
+```
+
+It returns the user data **inside** the repo to its template state, leaving
+source code and tests untouched:
+
+| Target | What happens |
+| --- | --- |
+| `.env.local` | deleted |
+| `data/playlist.json` | reset to an empty station (name, tagline, tracks) |
+| `public/audio/` | uploaded audio and covers removed |
+| `src/lib/site.ts` | credits and contact details cleared |
+
+That last row matters if you forked: an unfilled credits file means takedown
+requests land in **someone else's** inbox.
+
+You have to type `SIFIRLA` to confirm; anything else — or Ctrl-D — aborts.
+Version-controlled files come back with `git restore <file>`, while
+`.env.local` is gone for good because it is in `.gitignore`.
+
+What lives outside the repo is deliberately left alone: the playlist in
+**Upstash Redis** and the files in **Cloudflare R2** are not this folder's
+property. Setup's *"replace the list"* option already overwrites Redis; clear
+R2 from the Cloudflare dashboard if you want to.
+
+### After setup
+
+```bash
+npm run dev          # http://localhost:3000 · admin: /admin
+npm run radio:match  # collapse a mixed list into one kind
+npm run radio:covers # move cover art into your own store
+```
+
 ### Testing from a phone
 
 For safety, Next's dev server refuses to serve `/_next/*` resources to origins
@@ -191,12 +326,25 @@ If you own the recordings, serve them directly instead of embedding YouTube:
 npm run radio:add        # 3) Add local audio files (scan a folder)
 ```
 
-Files are copied into `public/audio/` and deploy with the repo. Title, artist
-and cover come from the ID3 tags where present; duration is parsed from the MP3
-frames to the millisecond, because synchronisation depends on it. `.m4a`,
-`.ogg`, `.wav` and `.flac` work if `ffprobe` is installed. Local files are not a
-separate mode — they are tracks with `kind: "audio"` and can sit in the same
-playlist as YouTube tracks.
+Files are written to the **audio store** you configured: `public/audio/` by
+default, or Cloudflare R2 when it is set up — see [Where the audio files
+live](#where-the-audio-files-live). Title, artist and cover come from the ID3
+tags where present; duration is parsed from the MP3 frames to the millisecond,
+because synchronisation depends on it. `.m4a`, `.ogg`, `.wav` and `.flac` work
+if `ffprobe` is installed. Local files are not a separate mode — they are tracks
+with `kind: "audio"` and can sit in the same playlist as YouTube tracks.
+
+If your filenames do not carry reliable titles, and the same songs exist as
+YouTube entries in the playlist:
+
+```bash
+npm run radio:match
+```
+
+It pairs them on duration and normalised titles, then keeps the audio playing
+from your store while taking **title, artist and cover** from the YouTube entry
+— and drops that entry, which would otherwise play the same song twice.
+Uncertain pairs are confirmed one by one.
 
 > **This one is on you.** Everything else streams from YouTube's CDN: your
 > server sends no audio at all, and playback happens under YouTube's terms.
@@ -218,6 +366,125 @@ again.
 Edits made in `/admin` cannot do this: the panel runs on the server, where the
 filesystem is read-only. Use **Copy to backup** in the source panel after a
 session of panel edits, then commit.
+
+---
+
+## Where the audio files live
+
+This is **independent** of where the playlist lives: reading the list from Redis
+while serving audio from R2 is a valid setup. `npm run radio:setup` asks the two
+questions separately; the answer is written to `AUDIO_STORAGE`. YouTube tracks
+never touch this axis — their audio already comes from YouTube.
+
+| Store                 | Files live in           | Listener traffic                                | Use when             |
+| --------------------- | ----------------------- | ----------------------------------------------- | -------------------- |
+| **`local`** (default) | `public/audio/`, in the repo | billed by your host (Vercel free: 100 GB/mo) | a few tracks, trying it out |
+| **`r2`**              | Cloudflare R2           | **free** — R2 charges no egress                 | a real library       |
+
+Audio is heavy: roughly 57 MB per hour at 128 kbps. Vercel's 100 GB runs out
+after ~1,750 listener-hours. R2 has no such line item; you pay only for storage,
+and the first 10 GB are free ($0.015/GB/month beyond that). The free allowance
+is not a trial — it renews every month.
+
+### Setting up Cloudflare R2
+
+1. **Create the bucket** — Cloudflare → R2 → *Create bucket*. Location
+   `Automatic`, class **Standard**. Do not pick *Infrequent Access*: storage is
+   cheaper but retrieval is billed, which is the wrong trade for a radio whose
+   files are read constantly.
+2. **Attach a custom domain** — bucket → *Settings* → *Public access* →
+   **Connect Domain**, e.g. `cdn.myradio.com`. That address becomes
+   `R2_PUBLIC_URL`. Do not use the `r2.dev` address: it is rate-limited and WAF
+   rules cannot be applied to it.
+3. **Create an API token** — R2 → *Manage API tokens* → **Object Read & Write**,
+   scoped to this bucket. The secret is shown once.
+4. Run `npm run radio:setup`, choose R2 at the storage question, paste the five
+   values.
+
+Uploads are signed and go to the private S3 endpoint
+(`<account>.r2.cloudflarestorage.com`); playback comes from the public custom
+domain. They are two separate doors. The keys never reach the client — the only
+publicly visible value is `R2_PUBLIC_URL`.
+
+### Cover art
+
+Artwork is the easiest thing to overlook when you run your own radio: the audio
+moves into your store but **the covers stay outside**. If `radio:match` merely
+*linked* to the YouTube thumbnail when pairing a track, a broadcast whose audio
+is entirely yours would still depend on YouTube for its artwork — and lose it
+whenever a video is taken down.
+
+So covers are **downloaded and copied into your store**. Three sources, in order:
+
+1. **Artwork embedded in the MP3** (ID3). Both `radio:add` and the panel upload
+   extract it automatically.
+2. **A cover you supply in the panel** — pick a file or paste a URL. If the URL
+   is a YouTube link, the thumbnail ladder `maxresdefault → sddefault →
+   hqdefault` is tried and the first hit is downloaded.
+3. **`radio:match`** — the matched YouTube entry's thumbnail is fetched
+   automatically.
+
+If your existing playlist already points outward, one command repairs it:
+
+```bash
+npm run radio:covers
+```
+
+It reports the state (how many covers are in your store, how many are external,
+how many tracks have none), downloads the external ones into the store and
+rewrites the playlist URLs. For tracks with no cover at all it can ask for a
+YouTube playlist URL and source their artwork by matching on duration and title.
+
+A track whose cover cannot be found still plays; it falls back to the station
+icon.
+
+> Covers work from any address; you never need to declare a hostname in
+> `next.config.ts`. Cover rendering deliberately avoids `next/image`, which
+> requires an allowlist for remote images — tying your storage domain to that
+> list would crash the player whenever the domain changed.
+
+### Hotlink protection
+
+Because the custom domain is public, other sites can reference your files as
+their own source. One Cloudflare rule stops that:
+
+**Security → WAF → Custom rules → Create rule**
+
+```
+(http.host eq "cdn.myradio.com"
+ and http.referer ne ""
+ and not http.referer contains "myradio.com"
+ and not http.referer contains "localhost"
+ and not http.referer contains ".local")
+→ Block
+```
+
+The two exemptions are deliberate:
+
+- **Empty `Referer`** is allowed. Direct hits, browsers configured not to send a
+  referrer and some mobile clients are legitimate listeners; blocking them means
+  blocking your own audience.
+- **`localhost` and `.local`** are allowed, otherwise audio breaks during
+  `npm run dev` and the CDN looks broken.
+
+The free plan allows 5 custom rules. `Referer` can be forged, so this will not
+stop a determined attacker; it does completely stop another site's `<audio>` tag
+from feeding off your bucket, which is the scenario worth defending against.
+
+Verify it works (propagation can take ~1 minute):
+
+```bash
+curl -sS -o /dev/null -w "%{http_code}\n" -H "Referer: https://elsewhere.com/" \
+  https://cdn.myradio.com/a-track.mp3      # expect 403
+
+curl -sS -o /dev/null -w "%{http_code}\n" -H "Referer: https://myradio.com/" \
+  https://cdn.myradio.com/a-track.mp3      # expect 200
+```
+
+> Presigned R2 URLs **do not work with custom domains**, and a custom domain is
+> the only way to get Cloudflare caching and WAF rules. The HMAC validation that
+> combines both requires a Pro plan. On the free plan the correct setup is a
+> public custom domain plus the `Referer` rule.
 
 ---
 
@@ -281,6 +548,12 @@ Copy `.env.example` to `.env.local` and fill it in.
 | `RADIO_PLAYLIST_TTL_SEC`   | optional | optional                 | How often the YouTube playlist is re-read. Default 300.                                  |
 | `UPSTASH_REDIS_REST_URL`   | optional | required for `redis`     | Playlist store. Without it `data/playlist.json` is used.                                 |
 | `UPSTASH_REDIS_REST_TOKEN` | optional | required for `redis`     | Comes with the above.                                                                    |
+| `AUDIO_STORAGE`            | optional | optional                 | `local` or `r2`. Where your own audio files are stored. Falls back to the R2 keys.        |
+| `R2_ACCOUNT_ID`            | —        | required in `r2` mode    | Cloudflare account id.                                                                   |
+| `R2_BUCKET`                | —        | required in `r2` mode    | Bucket name.                                                                             |
+| `R2_ACCESS_KEY_ID`         | —        | required in `r2` mode    | API token with Object Read & Write.                                                      |
+| `R2_SECRET_ACCESS_KEY`     | —        | required in `r2` mode    | Comes with the above. Never reaches the client.                                          |
+| `R2_PUBLIC_URL`            | —        | required in `r2` mode    | Public address of the files — the custom domain attached to the bucket.                  |
 | `YOUTUBE_API_KEY`          | optional | **strongly recommended** | Resolves track metadata through the official API. See below.                             |
 | `NEXT_PUBLIC_SITE_URL`     | optional | optional                 | Absolute base URL for share links and OpenGraph. Auto-detected on Vercel.                |
 | `ALLOWED_DEV_ORIGINS`      | optional | —                        | Extra dev origins, e.g. a LAN IP. Development only.                                      |
@@ -380,9 +653,36 @@ npm run radio:add -- "https://youtu.be/VIDEO_ID"
 npm run radio:add -- "https://www.youtube.com/playlist?list=PLAYLIST_ID"
 ```
 
+`npm run radio:covers` moves cover art into your own store (see [Cover
+art](#cover-art)). `npm run radio:match` merges local files with the YouTube
+entries already in the playlist.
+
 `npm run radio:sync` re-fetches metadata for entries you edited by hand.
 `durationSec` is always refreshed because synchronisation depends on it; titles
 and artists you edited survive unless you pass `--force`.
+
+#### Uploading files from the panel
+
+`/admin` → **Add from file**. Pick an audio file: duration, ID3 tags and
+embedded artwork are read from it, the file is uploaded to your configured store
+(R2 or `public/audio`), and the track is added to the draft list as
+`kind: "audio"`. You can select several files at once.
+
+When exactly one file is selected, the **Title**, **Artist**, **Cover** and
+**Cover URL** fields override what was read from the file. With multiple files
+they are ignored — otherwise every track would end up with the same name.
+
+Paste a YouTube link into **Cover URL** and that video's thumbnail is downloaded
+into your own store; no external link is left behind.
+
+For MP3s the server parses the duration itself and that value wins. For other
+formats it falls back to the duration measured by the browser, because there is
+no guarantee `ffprobe` exists in production.
+
+> The YouTube link field on the same page still works and adds a
+> `kind: "youtube"` track. If you are broadcasting entirely from your own files,
+> avoid it: when that track's turn comes the YouTube player opens and you lose
+> background playback.
 
 ## Appearance and PWA
 

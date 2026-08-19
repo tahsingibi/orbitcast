@@ -1,14 +1,10 @@
 /**
  * Künye ve iletişim bilgileri — tek yerden değiştirilir.
  *
- * DİKKAT: bu dosya `production` branch'inde gerçek değerleri taşıyor; `main`
- * ise nötr placeholder'larla duruyor. İkisi bilerek ayrı — `main` şablon ve
- * fork alan herkes onu miras alıyor. Buradaki değerleri asla `main`'e merge
- * etme; ters yönde (main -> production) merge güvenli.
- *
- * `main`'de bu alanlar bilerek sahte: dosya şablonun parçası, gerçek bir adres
- * bırakılsa kurulumu tamamlamayan her fork *başkasının* iletişim bilgisini
- * yayınlar ve kaldırma talepleri yanlış gelen kutusuna düşerdi.
+ * Buradaki değerler şablon hâlinde bilerek sahte: dosya şablonun parçası,
+ * gerçek bir adres bırakılsa kurulumu tamamlamayan her fork *başkasının*
+ * iletişim bilgisini yayınlar ve kaldırma talepleri yanlış gelen kutusuna
+ * düşerdi.
  *
  * Neden ortam değişkeni değil: burası yapılı ve çoğalabilen veri tutuyor
  * (`socials` bir dizi). Env düz metin için; her hesap başına bir değişken
@@ -19,7 +15,18 @@ export const site = {
   author: {
     name: "sungur.dev",
     url: "https://sungur.dev",
+    /** Künyede adın önünde görünen kullanıcı adı; boşsa yalnızca ad yazılır. */
+    handle: "@tahsingibi",
   },
+
+  /**
+   * İstasyonun kendi adresi — künyede bağlantı olarak görünür.
+   *
+   * Ortam değişkeninden okumak yerine burada: `NEXT_PUBLIC_SITE_URL`
+   * tanımlanmamış kurulumlarda adres yalnızca sunucuda biliniyor ve künye
+   * istemci tarafında render ediliyor. Boş bırakılırsa bağlantı hiç çıkmaz.
+   */
+  stationUrl: "https://orbitcast.sungur.dev",
 
   /**
    * Sosyal hesaplar — "Hakkında" penceresindeki künye satırında listelenir.
@@ -35,25 +42,13 @@ export const site = {
   /**
    * Kaldırma taleplerinin gideceği adres.
    *
-   * Fork'unu yayınlıyorsan burayı **mutlaka** değiştir: hak sahipleri
-   * senin yayınladığın içerik için buraya yazacak.
+   * Yayına çıkmadan önce burayı **mutlaka** doldur: hak sahipleri senin
+   * yayınladığın içerik için buraya yazacak.
    */
   contactEmail: "mtahsinsungur@gmail.com",
 
-  /** Kaynak kodun adresi — footer'daki GitHub bağlantısı buraya gider. */
+  /** Kaynak kodun adresi — footer'daki rozet buraya gider. */
   repoUrl: "https://github.com/tahsingibi/orbitcast",
-
-  /**
-   * Bağış bağlantısı.
-   *
-   * Boş bırakılırsa "Hakkında" penceresindeki destek bölümü hiç render
-   * edilmez. Şablonda boş: kimse istemeden başkası adına bağış toplamasın.
-   *
-   * Tip `string`'e genişletiliyor: `as const` altında değişmez metin tipi
-   * çıksa koşul derleme anında hep doğru görünür, boş bırakma senaryosu
-   * tipten kaybolurdu.
-   */
-  supportUrl: "https://buymeacoffee.com/tahsingibi" as string,
 } as const;
 
 /**

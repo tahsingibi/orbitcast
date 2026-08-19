@@ -2,6 +2,7 @@ import "server-only";
 
 import { readPlaylist, type PlaylistDoc } from "./playlist-store";
 import {
+  FALLBACK_COVER,
   isPrimarySource,
   trackKind,
   type PlaylistSource,
@@ -33,9 +34,6 @@ const CACHE_TTL_MS = 60_000;
 const FALLBACK_CACHE_TTL_MS = 60_000;
 
 let cache: { station: Station; at: number } | null = null;
-
-/** Kapağı olmayan yerel parçalar istasyon ikonuyla gösterilir. */
-const FALLBACK_COVER = "/icon-512.png";
 
 /**
  * Süresi olmayan parçalar senkronu bozacağı için sessizce elenir; çalınamaz

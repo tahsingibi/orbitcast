@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { adminEnabled, isAuthenticated } from "@/lib/admin-auth";
 import { getI18n } from "@/lib/i18n/server";
 import { readPlaylist, storeKind } from "@/lib/playlist-store";
+import { resolveStorageKind } from "@/lib/storage";
 
 import AdminPanel from "./AdminPanel";
 import LoginForm from "./LoginForm";
@@ -50,6 +51,7 @@ export default async function AdminPage() {
       initialSource={source}
       initialSourceError={error ?? null}
       storeKind={storeKind}
+      storageKind={resolveStorageKind()}
     />
   );
 }

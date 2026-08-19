@@ -10,6 +10,15 @@ type Props = {
   open: boolean;
   onClose: () => void;
   stationName: string;
+  /**
+   * Yayında kendi ses dosyalarımız var mı?
+   *
+   * Metin buna göre değişmek zorunda: varsayılan bildirim "hiçbir ses dosyası
+   * barındırılmaz" diyor ve YouTube'dan yayın yapan bir istasyonda bu doğru.
+   * Kendi mp3'lerini servis eden bir kurulumda ise **yanlış** olurdu — üstelik
+   * hak sahiplerine gösterilen bir beyan olduğu için yanlış olması ciddi.
+   */
+  selfHosted: boolean;
 };
 
 /**
@@ -18,7 +27,7 @@ type Props = {
  * Native <dialog> kullanılıyor: odak tuzağı, Esc ile kapanma ve arka plan
  * inertliği tarayıcıdan geliyor — kendi implementasyonumuzu yazmıyoruz.
  */
-export default function InfoDialog({ open, onClose, stationName }: Props) {
+export default function InfoDialog({ open, onClose, stationName, selfHosted }: Props) {
   const t = useT();
   const ref = useNativeDialog(open, onClose);
 
@@ -52,26 +61,36 @@ export default function InfoDialog({ open, onClose, stationName }: Props) {
             <h3 className="text-xs font-medium tracking-[0.15em] text-neutral-300">
               {t.info.howHeading}
             </h3>
-            <p className="mt-2">
-              {format(t.info.howBody, { station: stationName })}{" "}
-              <strong className="font-medium text-neutral-300">
-                {t.info.howApi}
-              </strong>
-              {t.info.howBodyRest}
-            </p>
+            {selfHosted ? (
+              <p className="mt-2">
+                {format(t.info.howBodySelfHosted, { station: stationName })}
+              </p>
+            ) : (
+              <p className="mt-2">
+                {format(t.info.howBody, { station: stationName })}{" "}
+                <strong className="font-medium text-neutral-300">
+                  {t.info.howApi}
+                </strong>
+                {t.info.howBodyRest}
+              </p>
+            )}
           </section>
 
           <section>
             <h3 className="text-xs font-medium tracking-[0.15em] text-neutral-300">
               {t.info.copyrightHeading}
             </h3>
-            <p className="mt-2">
-              {t.info.copyrightLead}{" "}
-              <strong className="font-medium text-neutral-300">
-                {t.info.copyrightEmphasis}
-              </strong>
-              {t.info.copyrightRest}
-            </p>
+            {selfHosted ? (
+              <p className="mt-2">{t.info.copyrightSelfHosted}</p>
+            ) : (
+              <p className="mt-2">
+                {t.info.copyrightLead}{" "}
+                <strong className="font-medium text-neutral-300">
+                  {t.info.copyrightEmphasis}
+                </strong>
+                {t.info.copyrightRest}
+              </p>
+            )}
             <p className="mt-2">{t.info.copyrightOwners}</p>
           </section>
 
@@ -85,46 +104,89 @@ export default function InfoDialog({ open, onClose, stationName }: Props) {
                 {t.info.takedownEmphasis}
               </strong>{" "}
               {t.info.takedownRest}
+              {/*
+                Adres metnin *içinde*: hak sahibi bu paragrafı okurken nereye
+                yazacağını aynı cümlede görüyor, ayrı bir düğmeye bakmak
+                zorunda kalmıyor. Doldurulmamışsa (şablon hâli) hiç yazılmıyor
+                — boş bir mailto talebi hiçbir yere göndermez.
+              */}
+              {site.contactEmail && (
+                <>
+                  {" "}
+                  {t.info.takedownContactLead}{" "}
+                  <Link
+                    href={`mailto:${site.contactEmail}?subject=${encodeURIComponent(
+                      format(t.info.takedownSubject, { station: stationName }),
+                    )}`}
+                    className="whitespace-nowrap text-neutral-200 underline decoration-white/25 underline-offset-4 transition hover:decoration-white/60"
+                  >
+                    {site.contactEmail}
+                  </Link>
+                </>
+              )}
             </p>
-            <Link
-              href={`mailto:${site.contactEmail}?subject=${encodeURIComponent(
-                format(t.info.takedownSubject, { station: stationName }),
-              )}`}
-              className="mt-3 inline-block rounded-lg border border-white/10 px-3 py-2 text-sm text-neutral-200 transition hover:border-white/25"
-            >
-              {site.contactEmail}
-            </Link>
           </section>
-          <hr className="border-neutral-700"/>
+          <hr className="border-neutral-700" />
           <section>
             <h3 className="text-xs font-medium tracking-[0.15em] text-neutral-300">
               {t.info.creditsHeading}
             </h3>
-            <p className="mt-2">
-              {format(t.info.creditsBody, { author: site.author.name })}
-            </p>
+            {site.author.name && (
+              <p className="mt-2">
+                {/*
+                  Şablon `{author}` etrafından bölünüyor: İngilizce "Built by X."
+                  derken Türkçe "X tarafından yapıldı." diyor. Tek bir ön ek
+                  metni iki dilde de doğru olamazdı.
+                */}
+                {(() => {
+                  const [before, after] = t.info.creditsBody.split("{author}");
+                  return (
+                    <>
+                      {before}
+                      {site.author.handle && (
+                        <>
+                          <Link
+                            href={site.socials[0]?.url ?? site.author.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-neutral-300 underline decoration-white/15 underline-offset-4 transition hover:decoration-white/40"
+                          >
+                            {site.author.handle}
+                          </Link>{" "}
+                        </>
+                      )}
+                      <span className="text-neutral-500">
+                        (
+                        <Link
+                          href={site.author.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="underline decoration-white/15 underline-offset-4 transition hover:decoration-white/40"
+                        >
+                          {site.author.name}
+                        </Link>
+                        )
+                      </span>
+                      {after}
+                    </>
+                  );
+                })()}
+              </p>
+            )}
+
+            {/* Bağlantılar ayrı satırda: üstteki cümle "kim yaptı"yı, bu satır
+                "nereye bakılır"ı cevaplıyor. */}
             <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-              <Link
-                href={site.author.url}
-                target="_blank"
-                rel="noreferrer"
-                className="text-neutral-300 underline decoration-white/15 underline-offset-4 transition hover:decoration-white/40"
-              >
-                {site.author.name}
-              </Link>
-              {/* Hesaplar diziden geliyor: yeni bir hesap eklemek site.ts'e
-                  bir satır eklemek demek, burada değişiklik gerekmiyor. */}
-              {site.socials.map((social) => (
+              {site.stationUrl && (
                 <Link
-                  key={social.url}
-                  href={social.url}
+                  href={site.stationUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="text-neutral-300 underline decoration-white/15 underline-offset-4 transition hover:decoration-white/40"
                 >
-                  {social.label}
+                  {site.stationUrl.replace(/^https?:\/\//, "")}
                 </Link>
-              ))}
+              )}
               <Link
                 href={site.repoUrl}
                 target="_blank"
@@ -135,25 +197,6 @@ export default function InfoDialog({ open, onClose, stationName }: Props) {
               </Link>
             </p>
           </section>
-
-          {/* Bağış adresi boşsa bölüm hiç çizilmiyor: fork'lar istemedikleri
-              hâlde bir bağış düğmesi yayınlamak zorunda kalmasın. */}
-          {site.supportUrl && (
-            <section>
-              <h3 className="text-xs font-medium tracking-[0.15em] text-neutral-300">
-                {t.info.supportHeading}
-              </h3>
-              <p className="mt-2">{t.info.supportBody}</p>
-              <Link
-                href={site.supportUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-3 inline-block rounded-lg border border-white/10 px-3 py-2 text-sm text-neutral-200 transition hover:border-white/25"
-              >
-                {t.info.supportCta}
-              </Link>
-            </section>
-          )}
         </div>
       </div>
     </dialog>

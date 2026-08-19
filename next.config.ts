@@ -15,10 +15,11 @@ const extraDevOrigins = (process.env.ALLOWED_DEV_ORIGINS ?? "")
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["*.local", "*.localhost", ...extraDevOrigins],
-  images: {
-    // Parça kapakları YouTube thumbnail'lerinden geliyor.
-    remotePatterns: [{ protocol: "https", hostname: "i.ytimg.com", pathname: "/vi/**" }],
-  },
+  // images.remotePatterns bilerek yok: kapaklar `CoverArt` içinde düz <img>
+  // ile yükleniyor. `next/image` uzak görseller için alan adı allowlist'i
+  // istiyor ve kapakların adresi kullanıcının deposuna göre değişiyor —
+  // allowlist'i yapılandırmaya bağlamak oynatıcıyı çalışma anında
+  // çökertebilen bir kırılganlık yaratıyordu.
 };
 
 export default nextConfig;

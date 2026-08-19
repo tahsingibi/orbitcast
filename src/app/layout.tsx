@@ -37,9 +37,17 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: baseUrl(),
     title: stationTitle(station.name, station.tagline),
-    description: `${description} ${format(t.player.builtBy, { author: site.author.name })}.`,
-    authors: [{ name: site.author.name, url: site.author.url }],
-    creator: site.author.name,
+    // Künye şablon hâlindeyken (kurulum öncesi) boş yazar alanları
+    // metadata'ya sızmasın: "Built by ." gibi bir açıklama üretilirdi.
+    description: site.author.name
+      ? `${description} ${format(t.player.builtBy, { author: site.author.name })}.`
+      : description,
+    ...(site.author.name
+      ? {
+          authors: [{ name: site.author.name, url: site.author.url || undefined }],
+          creator: site.author.name,
+        }
+      : {}),
     applicationName: station.name,
     manifest: "/manifest.webmanifest",
     icons: {
