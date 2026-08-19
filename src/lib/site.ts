@@ -12,11 +12,19 @@
  * kaybettirir ve hatayı derleme anından çalışma anına taşır.
  */
 export const site = {
+  /**
+   * Aşağıdaki alanlar `as string` ile genişletiliyor.
+   *
+   * `as const` altında değerin *kendisi* tip oluyor: şablonda boş bırakılan
+   * bir alan `""` tipine düşüyor ve onu koşula sokan kod `never` üzerinde
+   * çalışmaya kalkıyor — uygulama şablon hâlinde derlenmiyor. Genişletmek,
+   * "burası boş olabilir" bilgisini tipte tutuyor.
+   */
   author: {
-    name: "sungur.dev",
-    url: "https://sungur.dev",
+    name: "example.com" as string,
+    url: "https://example.com" as string,
     /** Künyede adın önünde görünen kullanıcı adı; boşsa yalnızca ad yazılır. */
-    handle: "@tahsingibi",
+    handle: "" as string,
   },
 
   /**
@@ -26,7 +34,7 @@ export const site = {
    * tanımlanmamış kurulumlarda adres yalnızca sunucuda biliniyor ve künye
    * istemci tarafında render ediliyor. Boş bırakılırsa bağlantı hiç çıkmaz.
    */
-  stationUrl: "https://orbitcast.sungur.dev",
+  stationUrl: "" as string,
 
   /**
    * Sosyal hesaplar — "Hakkında" penceresindeki künye satırında listelenir.
@@ -35,9 +43,7 @@ export const site = {
    * eklemek demek, arayüzde hiçbir değişiklik gerektirmiyor. Boş bırakılırsa
    * künye satırında hiç görünmezler.
    */
-  socials: [
-    { label: "@tahsingibi", url: "https://x.com/tahsingibi" },
-  ] as ReadonlyArray<{ label: string; url: string }>,
+  socials: [] as ReadonlyArray<{ label: string; url: string }>,
 
   /**
    * Kaldırma taleplerinin gideceği adres.
@@ -45,7 +51,7 @@ export const site = {
    * Yayına çıkmadan önce burayı **mutlaka** doldur: hak sahipleri senin
    * yayınladığın içerik için buraya yazacak.
    */
-  contactEmail: "mtahsinsungur@gmail.com",
+  contactEmail: "you@example.com" as string,
 
   /** Kaynak kodun adresi — footer'daki rozet buraya gider. */
   repoUrl: "https://github.com/tahsingibi/orbitcast",
