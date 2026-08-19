@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import CoverArt from "@/components/CoverArt";
 import LanguageSwitch from "@/components/LanguageSwitch";
@@ -124,6 +124,12 @@ export default function AdminPanel({
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadArtist, setUploadArtist] = useState("");
   const [coverFile, setCoverFile] = useState<File | null>(null);
+  /** Odaktaki satır; düzenlerken sürüklemeyi kapatıyor. */
+  const [editingRow, setEditingRow] = useState<number | null>(null);
+  /** Kapağı yüklenen satır; aynı anda ikinci istek gitmesin. */
+  const [coverBusy, setCoverBusy] = useState<number | null>(null);
+  const rowCoverInputRef = useRef<HTMLInputElement>(null);
+  const rowCoverTarget = useRef<number | null>(null);
   const [coverUrl, setCoverUrl] = useState("");
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -184,6 +190,46 @@ export default function AdminPanel({
     setTracks(next);
     setDirty(true);
     setError(null);
+  }
+
+  /** Tek bir parçanın alanlarını değiştirir; kaydetme mevcut akıştan geçer. */
+  function updateTrack(index: number, patch: Partial<Draft>) {
+    mutate(tracks.map((track, i) => (i === index ? { ...track, ...patch } : track)));
+  }
+
+  /** Kapak seçiciyi açar; hangi satır için açıldığını ref'te tutar. */
+  function pickCoverFor(index: number) {
+    rowCoverTarget.current = index;
+    rowCoverInputRef.current?.click();
+  }
+
+  /**
+   * Seçilen görseli depoya yükler ve satırın kapağını değiştirir.
+   *
+   * Yükleme hemen yapılıyor ama listeye yazma taslakta kalıyor: "Kaydet"
+   * denmeden yayın değişmiyor. Depoda fazladan bir dosya oluşuyor, o da
+   * parçanın kimliğiyle adlandırıldığı için bir sonraki seçimde üzerine
+   * yazılıyor.
+   */
+  async function uploadRowCover(index: number, file: File) {
+    setCoverBusy(index);
+    setError(null);
+
+    try {
+      const body = new FormData();
+      body.append("videoId", tracks[index].videoId);
+      body.append("file", file);
+
+      const res = await fetch("/api/admin/cover", { method: "POST", body });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      updateTrack(index, { thumbnail: data.thumbnail });
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setCoverBusy(null);
+    }
   }
 
   /**
@@ -976,7 +1022,9 @@ export default function AdminPanel({
               {tracks.map((track, i) => (
                 <li
                   key={track.videoId}
-                  draggable={!readOnly}
+                  // Bir alan düzenlenirken sürükleme kapanıyor: HTML5 drag
+                  // aktifken tarayıcılar input içinde metin seçtirmiyor.
+                  draggable={!readOnly && editingRow !== i}
                   onDragStart={(e) => {
                     setDragIndex(i);
                     e.dataTransfer.effectAllowed = "move";
@@ -1016,18 +1064,57 @@ export default function AdminPanel({
                   >
                     {i + 1}
                   </span>
-                  <CoverArt
-                    track={track}
-                    width={48}
-                    height={48}
-                    className="h-12 w-12 shrink-0 rounded-md object-cover"
-                  />
+                  {/* Kapağa tıklamak dosya seçtiriyor; üstünde ne olacağını
+                      söyleyen bir katman beliriyor. */}
+                  <button
+                    type="button"
+                    onClick={() => pickCoverFor(i)}
+                    disabled={readOnly || coverBusy !== null}
+                    title={t.admin.editCover}
+                    className="group/cover relative h-12 w-12 shrink-0 overflow-hidden rounded-md disabled:cursor-not-allowed"
+                  >
+                    <CoverArt
+                      track={track}
+                      width={48}
+                      height={48}
+                      className="h-12 w-12 object-cover"
+                    />
+                    {!readOnly && (
+                      <span className="absolute inset-0 flex items-center justify-center bg-neutral-950/70 text-[10px] font-medium text-neutral-200 opacity-0 transition group-hover/cover:opacity-100">
+                        {coverBusy === i ? "…" : t.admin.editCoverShort}
+                      </span>
+                    )}
+                  </button>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm text-neutral-200">
-                      {track.title}
-                    </p>
-                    <p className="truncate text-xs text-neutral-500">
-                      {track.artist} · {formatClock(track.durationSec)}
+                    {/*
+                      Metin gibi görünen ama gerçekte input olan alanlar.
+                      "Tıklayınca inputa dönüşsün" davranışını ayrı bir durumla
+                      kurmak yerine kenarlığı odakta göstermek yetiyor: tek
+                      tıkla imleç doğru harfe düşüyor, iki ayrı eleman arasında
+                      geçiş yapılmadığı için odak da kaybolmuyor.
+                    */}
+                    <input
+                      value={track.title}
+                      disabled={readOnly}
+                      onChange={(e) => updateTrack(i, { title: e.target.value })}
+                      onFocus={() => setEditingRow(i)}
+                      onBlur={() => setEditingRow((row) => (row === i ? null : row))}
+                      aria-label={t.admin.editTitle}
+                      className="w-full truncate rounded border border-transparent bg-transparent px-1 py-0.5 text-sm text-neutral-200 outline-none transition hover:border-white/10 focus:border-white/25 focus:bg-white/5 disabled:hover:border-transparent"
+                    />
+                    <p className="flex items-center gap-1 text-xs text-neutral-500">
+                      <input
+                        value={track.artist}
+                        disabled={readOnly}
+                        onChange={(e) => updateTrack(i, { artist: e.target.value })}
+                        onFocus={() => setEditingRow(i)}
+                        onBlur={() => setEditingRow((row) => (row === i ? null : row))}
+                        aria-label={t.admin.editArtist}
+                        className="min-w-0 flex-1 truncate rounded border border-transparent bg-transparent px-1 py-0.5 outline-none transition hover:border-white/10 focus:border-white/25 focus:bg-white/5 disabled:hover:border-transparent"
+                      />
+                      <span className="shrink-0 tabular-nums">
+                        · {formatClock(track.durationSec)}
+                      </span>
                     </p>
                     {track.warning && (
                       <p className="mt-0.5 text-[11px] text-amber-400">
@@ -1074,6 +1161,24 @@ export default function AdminPanel({
                 </li>
               )}
             </ul>
+
+            {/* Satır kapakları için tek bir gizli seçici; hangi satır için
+                açıldığı ref'te tutuluyor, her satıra ayrı input koymaktan
+                ucuz. */}
+            <input
+              ref={rowCoverInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                const index = rowCoverTarget.current;
+                // Aynı dosyanın ikinci kez seçilebilmesi için girdiyi boşalt.
+                e.target.value = "";
+                rowCoverTarget.current = null;
+                if (file && index !== null) void uploadRowCover(index, file);
+              }}
+            />
           </div>
 
           {/* --- Kaydet --- */}
