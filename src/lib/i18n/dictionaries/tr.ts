@@ -217,6 +217,10 @@ export const tr = {
 
     emptyList: "Liste boş. Yukarıdan bir YouTube linki ekleyin.",
     dragHint: "Sürükleyerek sıralayın",
+    editCover: "Kapağı değiştir",
+    editCoverShort: "Değiştir",
+    editTitle: "Parça başlığı",
+    editArtist: "Sanatçı",
     shuffle: "Karıştır",
     shuffleHint:
       "Listeyi karıştırır ve aynı sanatçıyı arka arkaya koymamaya çalışır. " +
@@ -256,6 +260,7 @@ export const tr = {
     uploadNoDuration:
       "Parça süresi okunamadı. MP3 kullanmayı deneyin — diğer biçimlerde süre tarayıcıdan okunur.",
     uploadFailed: "Depoya yüklenemedi.",
+    coverUnreadable: "Kapak bu adresten indirilemedi.",
 
     // youtube-metadata.ts kodları
     INVALID_URL: "Geçerli bir YouTube linki veya video id'si değil.",

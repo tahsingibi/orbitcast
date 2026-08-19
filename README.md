@@ -2,7 +2,7 @@
 
 **Türkçe:** [README.tr.md](README.tr.md)
 
-Run your own internet radio — without your server streaming a single byte of audio.
+Run your own internet radio — without your app server carrying a single byte of audio.
 
 The YouTube tracks you pick play in order. Everyone who opens the site lands on
 **the same second of the same track**. When the list ends it loops, forever.
@@ -100,8 +100,9 @@ everyone, so per-listener seeking does not exist.
 
 ## How it works
 
-The server broadcasts nothing. It does not even _track_ what is playing. The
-position is pure arithmetic:
+The application server carries no audio and does not even _track_ what is
+playing. The position is pure arithmetic, and the sound goes **straight to the
+listener** from either YouTube's player or your own object store:
 
 ```
 total   = sum of all track durations
@@ -795,10 +796,20 @@ protection is `ADMIN_PASSWORD`.
 
 ## Copyright
 
-This application **hosts, downloads, copies and re-broadcasts nothing**. Content
-plays directly through YouTube's own player and infrastructure, exactly as the
-rights holders published it there. [YouTube's Terms of
-Service](https://www.youtube.com/t/terms) apply during playback.
+Responsibility depends on which kind of station you built — the two are worth
+keeping apart:
+
+**In YouTube mode** the application **hosts, downloads, copies and
+re-broadcasts nothing**. Content plays directly through YouTube's own player and
+infrastructure, exactly as the rights holders published it there. YouTube's
+[Terms of Service](https://www.youtube.com/t/terms) apply during playback.
+
+**When you broadcast your own files** it is the other way round: you host them,
+you distribute them, and the licensing is yours to hold. Putting a recording you
+have no right to publish into your own store is not the same as letting YouTube
+play it. The copyright notice in the About dialog follows this: as soon as a
+single self-hosted track is in the list, the text switches to the version that
+says so.
 
 The site carries a contact address for rights holders to send takedown requests
 — **you must replace it with your own** in `src/lib/site.ts`.

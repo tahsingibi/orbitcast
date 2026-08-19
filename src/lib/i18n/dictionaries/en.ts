@@ -201,6 +201,10 @@ export const en: Dictionary = {
 
     emptyList: "The playlist is empty. Add a YouTube link above.",
     dragHint: "Drag to reorder",
+    editCover: "Change cover",
+    editCoverShort: "Change",
+    editTitle: "Track title",
+    editArtist: "Artist",
     shuffle: "Shuffle",
     shuffleHint:
       "Shuffles the playlist and keeps the same artist from playing back to " +
@@ -240,6 +244,7 @@ export const en: Dictionary = {
     uploadNoDuration:
       "Could not read the track duration. Try an MP3 — other formats rely on the browser for duration.",
     uploadFailed: "Upload to storage failed.",
+    coverUnreadable: "Could not download a cover from that address.",
 
     INVALID_URL: "Not a valid YouTube link or video id.",
     VIDEO_NOT_FOUND: "Video not found (it may be deleted or private).",
