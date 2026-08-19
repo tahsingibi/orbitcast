@@ -21,8 +21,8 @@ export const site = {
    * "burası boş olabilir" bilgisini tipte tutuyor.
    */
   author: {
-    name: "example.com" as string,
-    url: "https://example.com" as string,
+    name: "" as string,
+    url: "" as string,
     /** Künyede adın önünde görünen kullanıcı adı; boşsa yalnızca ad yazılır. */
     handle: "" as string,
   },
@@ -51,7 +51,7 @@ export const site = {
    * Yayına çıkmadan önce burayı **mutlaka** doldur: hak sahipleri senin
    * yayınladığın içerik için buraya yazacak.
    */
-  contactEmail: "you@example.com" as string,
+  contactEmail: "" as string,
 
   /** Kaynak kodun adresi — footer'daki rozet buraya gider. */
   repoUrl: "https://github.com/tahsingibi/orbitcast",
