@@ -21,10 +21,10 @@ export const site = {
    * "burası boş olabilir" bilgisini tipte tutuyor.
    */
   author: {
-    name: "" as string,
-    url: "" as string,
+    name: "Tahsin Sungur" as string,
+    url: "https://sungur.dev" as string,
     /** Künyede adın önünde görünen kullanıcı adı; boşsa yalnızca ad yazılır. */
-    handle: "" as string,
+    handle: "tahsingibi" as string,
   },
 
   /**
@@ -34,7 +34,7 @@ export const site = {
    * tanımlanmamış kurulumlarda adres yalnızca sunucuda biliniyor ve künye
    * istemci tarafında render ediliyor. Boş bırakılırsa bağlantı hiç çıkmaz.
    */
-  stationUrl: "" as string,
+  stationUrl: "https://cast.sungur.dev" as string,
 
   /**
    * Sosyal hesaplar — "Hakkında" penceresindeki künye satırında listelenir.
@@ -51,7 +51,7 @@ export const site = {
    * Yayına çıkmadan önce burayı **mutlaka** doldur: hak sahipleri senin
    * yayınladığın içerik için buraya yazacak.
    */
-  contactEmail: "" as string,
+  contactEmail: "mtahsinsungur@gmail.com" as string,
 
   /** Kaynak kodun adresi — footer'daki rozet buraya gider. */
   repoUrl: "https://github.com/tahsingibi/orbitcast",
