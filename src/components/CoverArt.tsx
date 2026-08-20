@@ -31,8 +31,11 @@ function hash(value: string): number {
  * ("Ceza · Suspus" → "CS") parçayı gerçekten ayırt ediyor.
  */
 function initials(track: Pick<Track, "title" | "artist">): string {
-  const first = (value: string) => [...value.trim()][0]?.toLocaleUpperCase("tr") ?? "";
-  const artist = first(track.artist === "Bilinmeyen sanatçı" ? "" : track.artist);
+  const first = (value: string) =>
+    [...value.trim()][0]?.toLocaleUpperCase("tr") ?? "";
+  const artist = first(
+    track.artist === "Bilinmeyen sanatçı" ? "" : track.artist,
+  );
   const title = first(track.title);
   return (artist + title).slice(0, 2) || "♪";
 }
@@ -65,6 +68,25 @@ export function hasCover(thumbnail: string): boolean {
   return Boolean(thumbnail) && thumbnail !== FALLBACK_COVER;
 }
 
+/**
+ * YouTube'un 4:3 küçük resimleri (`default`, `hqdefault`, `sddefault`) 16:9
+ * kareyi üstten ve alttan siyah bantla dolduruyor. Bu bantlar görselin bir
+ * parçası olduğu için `object-cover` onları da içerik sanıyor: kare kapak
+ * alanında kapak küçülüyor, üstte ve altta siyah şeritler kalıyor.
+ *
+ * 16:9 olan `maxresdefault`/`mqdefault` ve depodaki kendi kapaklarımızda böyle
+ * bir bant yok; sadece bu üç kaliteyi işaretliyoruz.
+ */
+const LETTERBOXED_THUMBNAIL =
+  /^https?:\/\/(?:i\d*\.ytimg\.com|img\.youtube\.com)\/vi(?:_webp)?\/[^/]+\/(?:default|hqdefault|sddefault)\.(?:jpg|webp)/i;
+
+/**
+ * Bantları çerçevenin dışına iten büyütme oranı: 4:3 görselin içindeki 16:9
+ * alan yüksekliğin 3/4'ü, yani 4/3 büyütünce tam oturuyor. Kalan geniş kare
+ * `object-cover` ile ortadan kırpılıyor — kapak sanatı da zaten orada duruyor.
+ */
+const LETTERBOX_ZOOM = 4 / 3;
+
 export default function CoverArt({
   track,
   fill,
@@ -76,26 +98,50 @@ export default function CoverArt({
   plain,
 }: Props) {
   if (hasCover(track.thumbnail)) {
-    return (
-      // Bilinçli olarak düz <img>: `next/image` uzak görselleri yalnızca
-      // `next.config` içinde izin verilen alan adlarından yüklüyor. Kapakların
-      // adresi ise kullanıcının deposundan geliyor ve kurulumdan kuruluma
-      // değişiyor — allowlist'i ortam değişkeninden türetmek, değişken
-      // yapılandırma okunmadan önce değerlendirildiğinde oynatıcıyı çalışma
-      // anında çökertiyordu. Kapaklar zaten en fazla 384px gösteriliyor ve
-      // kaynakları küçük; optimizasyondan kazanılan, bu kırılganlığa değmez.
+    const letterboxed = LETTERBOXED_THUMBNAIL.test(track.thumbnail);
+
+    // Bilinçli olarak düz <img>: `next/image` uzak görselleri yalnızca
+    // `next.config` içinde izin verilen alan adlarından yüklüyor. Kapakların
+    // adresi ise kullanıcının deposundan geliyor ve kurulumdan kuruluma
+    // değişiyor — allowlist'i ortam değişkeninden türetmek, değişken
+    // yapılandırma okunmadan önce değerlendirildiğinde oynatıcıyı çalışma
+    // anında çökertiyordu. Kapaklar zaten en fazla 384px gösteriliyor ve
+    // kaynakları küçük; optimizasyondan kazanılan, bu kırılganlığa değmez.
+    const image = (
       // eslint-disable-next-line @next/next/no-img-element
       <img
         key={track.videoId}
         src={track.thumbnail}
         alt={alt}
-        {...(fill ? {} : { width: width ?? 48, height: height ?? 48 })}
+        {...(fill || letterboxed
+          ? {}
+          : { width: width ?? 48, height: height ?? 48 })}
         loading={priority ? "eager" : "lazy"}
         fetchPriority={priority ? "high" : undefined}
         decoding="async"
         draggable={false}
-        className={`${fill ? "absolute inset-0 h-full w-full" : ""} ${className}`}
+        style={letterboxed ? { scale: String(LETTERBOX_ZOOM) } : undefined}
+        className={
+          letterboxed
+            ? "absolute inset-0 h-full w-full object-cover"
+            : `${fill ? "absolute inset-0 h-full w-full" : ""} ${className}`
+        }
       />
+    );
+
+    if (!letterboxed) return image;
+
+    // Büyütülen görselin taşan kenarları burada kesiliyor: çağıran yerlerin
+    // hepsinde `overflow-hidden` olduğunu varsayamayız. Görünüm sınıfları
+    // (ölçü, köşe yarıçapı, bulanıklık) sarmalayıcıya geçiyor; içerideki
+    // <img> yalnızca kırpma işini yapıyor.
+    return (
+      <span
+        style={fill ? undefined : { width: width ?? 48, height: height ?? 48 }}
+        className={`relative block overflow-hidden ${fill ? "absolute inset-0 h-full w-full" : ""} ${className}`}
+      >
+        {image}
+      </span>
     );
   }
 
@@ -111,7 +157,7 @@ export default function CoverArt({
         // ölçüyü prop'lardan veriyoruz.
         ...(fill ? null : { width: width ?? 48, height: height ?? 48 }),
       }}
-      className={`flex items-center justify-center [container-type:size] ${fill ? "absolute inset-0 h-full w-full" : ""} ${className}`}
+      className={`flex items-center justify-center @container-size ${fill ? "absolute inset-0 h-full w-full" : ""} ${className}`}
     >
       {!plain && (
         <span

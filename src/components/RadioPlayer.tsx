@@ -302,7 +302,7 @@ export default function RadioPlayer({
   return (
     <main className="relative flex h-full items-center justify-center overflow-hidden bg-neutral-950 px-5 py-4 text-neutral-100 [@media(min-height:720px)]:py-8">
       {/* Kapaktan türeyen atmosfer */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
+      <div className="pointer-events-none absolute inset-0  -z-10">
         <CoverArt
           track={track}
           fill
@@ -310,11 +310,15 @@ export default function RadioPlayer({
           priority
           className="scale-125 object-cover opacity-40 blur-3xl saturate-150"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/40 via-neutral-950/75 to-neutral-950" />
+        <div className="absolute inset-0 bg-linear-to-b from-neutral-950/40 via-neutral-950/75 to-neutral-950" />
       </div>
 
       <section className="flex h-full w-full max-w-sm flex-col justify-center gap-4 [@media(min-height:800px)]:gap-5">
-        <StationHeader station={station} listeners={listeners} isPlaying={isPlaying} />
+        <StationHeader
+          station={station}
+          listeners={listeners}
+          isPlaying={isPlaying}
+        />
 
         <PlayerArtwork
           track={track}
@@ -369,7 +373,9 @@ export default function RadioPlayer({
         open={infoOpen}
         onClose={closeInfo}
         stationName={station.name}
-        selfHosted={station.tracks.some((track) => trackKind(track) === "audio")}
+        selfHosted={station.tracks.some(
+          (track) => trackKind(track) === "audio",
+        )}
       />
     </main>
   );
