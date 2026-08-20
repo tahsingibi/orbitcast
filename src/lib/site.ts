@@ -21,10 +21,10 @@ export const site = {
    * "burası boş olabilir" bilgisini tipte tutuyor.
    */
   author: {
-    name: "Tahsin Sungur" as string,
-    url: "https://sungur.dev" as string,
+    name: "" as string,
+    url: "" as string,
     /** Künyede adın önünde görünen kullanıcı adı; boşsa yalnızca ad yazılır. */
-    handle: "tahsingibi" as string,
+    handle: "" as string,
   },
 
   /**
@@ -34,7 +34,7 @@ export const site = {
    * tanımlanmamış kurulumlarda adres yalnızca sunucuda biliniyor ve künye
    * istemci tarafında render ediliyor. Boş bırakılırsa bağlantı hiç çıkmaz.
    */
-  stationUrl: "https://cast.sungur.dev" as string,
+  stationUrl: "" as string,
 
   /**
    * Sosyal hesaplar — "Hakkında" penceresindeki künye satırında listelenir.
