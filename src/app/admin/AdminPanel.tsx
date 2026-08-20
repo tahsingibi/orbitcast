@@ -25,6 +25,12 @@ import {
   type Station,
   type Track,
 } from "@/lib/radio";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  PlayIcon,
+  XIcon,
+} from "@/components/player/icons";
 
 type Props = {
   initialPlaylist: PlaylistDoc;
@@ -194,7 +200,9 @@ export default function AdminPanel({
 
   /** Tek bir parçanın alanlarını değiştirir; kaydetme mevcut akıştan geçer. */
   function updateTrack(index: number, patch: Partial<Draft>) {
-    mutate(tracks.map((track, i) => (i === index ? { ...track, ...patch } : track)));
+    mutate(
+      tracks.map((track, i) => (i === index ? { ...track, ...patch } : track)),
+    );
   }
 
   /** Kapak seçiciyi açar; hangi satır için açıldığını ref'te tutar. */
@@ -661,7 +669,7 @@ export default function AdminPanel({
       >
         <div ref={topRef} aria-hidden className="h-px" />
         <div className="mx-auto flex w-full max-w-2xl flex-col px-5 py-6 sm:py-10">
-          <header className="flex shrink-0 items-start justify-between gap-4">
+          <header className="flex shrink-0 items-start justify-between gap-4 max-md:flex-wrap">
             <div>
               <h1 className="text-sm font-semibold tracking-[0.2em] text-neutral-200">
                 {t.admin.title}
@@ -685,7 +693,7 @@ export default function AdminPanel({
                 </span>
               </p>
             </div>
-            <div className="flex shrink-0 gap-2">
+            <div className="flex shrink-0 gap-2 max-md:w-full">
               <Link
                 href="/"
                 className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-neutral-300 transition hover:border-white/25"
@@ -709,7 +717,7 @@ export default function AdminPanel({
               <button
                 type="button"
                 onClick={logout}
-                className="rounded-lg border border-red-800 px-3 py-1.5 text-xs  transition hover:border-red-800 text-red-600"
+                className="rounded-lg border border-red-800 px-3 py-1.5 text-xs  transition hover:border-red-800 text-red-600 max-md:ml-auto"
               >
                 {t.admin.signOut}
               </button>
@@ -1042,7 +1050,7 @@ export default function AdminPanel({
                     endDrag();
                   }}
                   onDragEnd={endDrag}
-                  className={`group flex items-center gap-3 py-3 transition-colors ${
+                  className={`group flex items-center gap-3 py-3 transition-colors max-md:flex-wrap  ${
                     readOnly ? "" : "cursor-grab active:cursor-grabbing"
                   } ${
                     dragIndex === i ? "opacity-30" : ""
@@ -1096,9 +1104,13 @@ export default function AdminPanel({
                     <input
                       value={track.title}
                       disabled={readOnly}
-                      onChange={(e) => updateTrack(i, { title: e.target.value })}
+                      onChange={(e) =>
+                        updateTrack(i, { title: e.target.value })
+                      }
                       onFocus={() => setEditingRow(i)}
-                      onBlur={() => setEditingRow((row) => (row === i ? null : row))}
+                      onBlur={() =>
+                        setEditingRow((row) => (row === i ? null : row))
+                      }
                       aria-label={t.admin.editTitle}
                       className="w-full truncate rounded border border-transparent bg-transparent px-1 py-0.5 text-sm text-neutral-200 outline-none transition hover:border-white/10 focus:border-white/25 focus:bg-white/5 disabled:hover:border-transparent"
                     />
@@ -1106,14 +1118,18 @@ export default function AdminPanel({
                       <input
                         value={track.artist}
                         disabled={readOnly}
-                        onChange={(e) => updateTrack(i, { artist: e.target.value })}
+                        onChange={(e) =>
+                          updateTrack(i, { artist: e.target.value })
+                        }
                         onFocus={() => setEditingRow(i)}
-                        onBlur={() => setEditingRow((row) => (row === i ? null : row))}
+                        onBlur={() =>
+                          setEditingRow((row) => (row === i ? null : row))
+                        }
                         aria-label={t.admin.editArtist}
                         className="min-w-0 flex-1 truncate rounded border border-transparent bg-transparent px-1 py-0.5 outline-none transition hover:border-white/10 focus:border-white/25 focus:bg-white/5 disabled:hover:border-transparent"
                       />
-                      <span className="shrink-0 tabular-nums">
-                        · {formatClock(track.durationSec)}
+                      <span className="shrink-0 tabular-nums text-xs text-neutral-500">
+                        {formatClock(track.durationSec)}
                       </span>
                     </p>
                     {track.warning && (
@@ -1122,27 +1138,27 @@ export default function AdminPanel({
                       </p>
                     )}
                   </div>
-                  <div className="flex shrink-0 items-center gap-1">
+                  <div className="flex shrink-0 items-center gap-1 max-md:flex-1 max-md:w-full">
                     <IconButton
                       label={t.admin.playFromHere}
                       onClick={() => void save(i)}
                       disabled={readOnly || saving || liveIndex === i}
                     >
-                      ▶
+                      <PlayIcon className="h-3 w-3 shrink-0 text-neutral-200" />
                     </IconButton>
                     <IconButton
                       label={t.admin.moveUp}
                       onClick={() => move(i, -1)}
                       disabled={readOnly || i === 0}
                     >
-                      ↑
+                      <ArrowUpIcon className="h-3 w-3 shrink-0 text-neutral-200" />
                     </IconButton>
                     <IconButton
                       label={t.admin.moveDown}
                       onClick={() => move(i, 1)}
                       disabled={readOnly || i === tracks.length - 1}
                     >
-                      ↓
+                      <ArrowDownIcon className="h-3 w-3 shrink-0 text-neutral-200" />
                     </IconButton>
                     <IconButton
                       label={t.admin.remove}
@@ -1150,7 +1166,7 @@ export default function AdminPanel({
                       disabled={readOnly}
                       danger
                     >
-                      ×
+                      <XIcon className="h-3 w-3 shrink-0 text-neutral-200" />
                     </IconButton>
                   </div>
                 </li>
@@ -1182,7 +1198,7 @@ export default function AdminPanel({
           </div>
 
           {/* --- Kaydet --- */}
-          <div className="mt-6 flex shrink-0 items-center justify-between gap-4">
+          <div className="mt-6 flex shrink-0 items-center justify-between gap-4 sticky bottom-0 pb-4 z-30 bg-linear-0 from-neutral-950">
             <p className="text-xs text-neutral-600">
               {dirty ? (
                 <span className="text-amber-400">{t.admin.unsaved}</span>
@@ -1231,7 +1247,7 @@ export default function AdminPanel({
       />
       <div
         aria-hidden
-        className={`pointer-events-none absolute inset-x-0 bottom-0 z-20 h-10 bg-gradient-to-t from-neutral-950 to-transparent transition-opacity duration-200 ${
+        className={`pointer-events-none absolute inset-x-0 bottom-0 z-20 h-40 bg-gradient-to-t from-neutral-950 to-transparent transition-opacity duration-200 ${
           fade.bottom ? "opacity-100" : "opacity-0"
         }`}
       />

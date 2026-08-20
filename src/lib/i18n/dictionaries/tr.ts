@@ -141,7 +141,7 @@ export const tr = {
     backToRadio: "Yayına dön",
     signOut: "Çıkış",
 
-    sourcePanelTitle: "YAYIN KAYNAĞI",
+    sourcePanelTitle: "Kaynak",
     sourcePanelHint: "Yayının hangi listeden çıkacağını buradan seçin",
     sourceOptionRedis: "Depodaki liste",
     sourceOptionRedisHint: "Aşağıda düzenlediğiniz liste yayında",
